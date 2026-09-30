@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=(self)">
 <title>Secure Cloud</title>
+<link rel="preconnect" href="https://activestatus-d4d3e-default-rtdb.asia-southeast1.firebasedatabase.app" crossorigin>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="dns-prefetch" href="https://securetoken.googleapis.com">
 <script src="https://cdn.tailwindcss.com">
 
 
@@ -692,6 +696,90 @@ html.lite .flower{filter:none!important}
   background:#111827;color:#fff;font-size:13.5px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:menuPop .2s var(--ease)}
 #reqToast.hidden{display:none}
 </style>
+<style id="fast-save-header">
+/* Compact header: only as tall as its content needs */
+#chatHeader{padding:calc(.4rem + env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) .4rem max(10px,env(safe-area-inset-left,0px))!important;box-shadow:0 2px 8px rgba(0,0,0,.14)!important;animation:none!important}
+#chatHeader>div:first-child{gap:8px}
+#dpBtn{width:clamp(34px,9.5vw,38px)!important;height:clamp(34px,9.5vw,38px)!important}
+#partnerName{font-size:clamp(14px,4.1vw,16px)!important;line-height:1.15!important}
+#status{font-size:clamp(10.5px,3vw,12px)!important;margin-top:0!important}
+.call-icon-btn,#menuBtn{width:clamp(32px,9vw,36px)!important;height:clamp(32px,9vw,36px)!important}
+#callBtn{width:auto!important}
+/* Speed: no smooth-scroll lag on new messages, lighter effects, no per-row GPU layers */
+#messages{scroll-behavior:auto!important}
+#composer{background:rgba(255,255,255,.96)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.date-sep{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.bubble.enter{animation-duration:.18s!important}
+#status,#statusDot{transition:none!important}
+/* Saved message: full row tint (no lock icon), joins neighbouring saved rows */
+/* (saved-row tint is now a non-layout pseudo-element — see #ui-polish-v2) */
+/* Request count on the 3-dots button */
+#menuDot{top:-2px!important;right:-2px!important;width:auto!important;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:99px!important;font-size:10px;font-weight:700;line-height:13px;color:#fff;text-align:center;display:block}
+#menuDot.hidden{display:none!important}
+</style>
+
+<style id="ui-polish-v2">
+/* ===== Tap fixes ===== */
+#messages>div[data-mid]{position:relative;-webkit-tap-highlight-color:transparent}
+#messages>div[data-mid] > .bubble{position:relative;z-index:1;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+/* Saved tint: painted BEHIND the row with a pseudo-element, so saving/unsaving
+   never changes margin/padding => no layout jump / glitch any more. */
+#messages>div.saved-row:before,#messages>div.select-row:before{
+  content:"";position:absolute;left:-12px;right:-12px;top:0;bottom:0;z-index:0;pointer-events:none;
+  background:color-mix(in srgb,var(--accent) 14%,transparent);
+  animation:rowTint .35s var(--ease) both;
+}
+#messages>div.select-row:before{background:color-mix(in srgb,var(--accent) 24%,transparent)}
+#messages>div.select-row,#messages>div.saved-row{background:transparent!important;border-radius:0!important}
+@keyframes rowTint{from{opacity:0}to{opacity:1}}
+/* Small star badge on saved messages */
+#messages>div.saved-row .bubble:before{
+  content:"★";position:absolute;top:-8px;left:-6px;width:18px;height:18px;border-radius:50%;
+  background:var(--accent);color:#fff;font-size:10px;line-height:18px;text-align:center;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);animation:starPop .4s var(--ease-bounce) both;z-index:3;
+}
+#messages>div.saved-row .bubble.sent:before{left:auto;right:-6px}
+#messages.select-mode>div.saved-row .bubble:before{display:none}
+@keyframes starPop{from{transform:scale(0) rotate(-40deg)}to{transform:scale(1) rotate(0)}}
+
+/* ===== Bigger, nicer double-tap heart ===== */
+.bubble.heart-pop:after{
+  font-size:44px!important;z-index:4;filter:drop-shadow(0 4px 10px rgba(225,29,72,.45));
+  animation:heartPop2 .8s var(--ease-bounce) forwards!important;
+}
+@keyframes heartPop2{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:0}
+  30%{transform:translate(-50%,-55%) scale(1.25);opacity:1}
+  60%{transform:translate(-50%,-60%) scale(1);opacity:1}
+  100%{transform:translate(-50%,-140%) scale(.9);opacity:0}
+}
+
+/* ===== Toast ===== */
+#miniToast{
+  position:absolute;left:50%;bottom:86px;z-index:80;transform:translate(-50%,14px);opacity:0;pointer-events:none;
+  background:rgba(17,24,39,.92);color:#fff;font-size:13px;font-weight:600;padding:8px 16px;border-radius:99px;
+  box-shadow:0 8px 24px rgba(0,0,0,.28);white-space:nowrap;transition:none;
+}
+#miniToast.show{animation:toastIn 1.4s var(--ease) both}
+@keyframes toastIn{0%{opacity:0;transform:translate(-50%,14px)}12%{opacity:1;transform:translate(-50%,0)}80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-6px)}}
+
+/* ===== Design polish ===== */
+#messages .bubble{transition:transform .15s var(--ease),box-shadow .2s ease,background .35s ease}
+#messages .bubble:active{transform:scale(.985)}
+#messages .bubble.sent{background:linear-gradient(145deg,#e3fbcf,#d1f3b6)}
+#messages .bubble.received{background:linear-gradient(145deg,#ffffff,#f7f9fb)}
+.date-sep{position:sticky;top:4px;z-index:6;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+/* Reaction pills */
+#messages .bubble [class*="reaction"],#messages .bubble .react-pill{border-radius:99px}
+#messages .bubble.enter{animation:messageIn2 .3s var(--ease) both}
+@keyframes messageIn2{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+#messages>button{border-radius:99px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+#scrollBottom{box-shadow:0 6px 18px rgba(15,23,42,.22)}
+#composer{box-shadow:0 -4px 18px rgba(15,23,42,.06)}
+#send:active{transform:scale(.9)}
+#send{transition:transform .15s var(--ease),box-shadow .2s}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body>
 <script>
@@ -1126,6 +1214,63 @@ function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
 const TICK_SINGLE = '<svg class="tick" viewBox="0 0 18 11" width="14" height="9" aria-label="Sent"><path d="M1.5 5.9 4.9 9.3 12.3 1.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const TICK_DOUBLE = '<svg class="tick" viewBox="0 0 18 11" width="17" height="9" aria-label="Seen"><path d="M1.5 5.9 4.9 9.3 12.3 1.7M5.7 5.9 9.1 9.3 16.5 1.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const localSaved = new Map(), savedIds = new Set();
+const isSaved = m => localSaved.has(m.id) ? localSaved.get(m.id) : !!m.saved;
+// Save = message dono taraf rahe. Agar partner ne apni taraf se clear kar diya ho
+// (deletedFor me uska naam) ya node DB se hat chuka ho, to sirf ye ek message
+// partner ke chat me wapas aa jaata hai. Unsave = normal, koi aur message nahi chhuta.
+async function writeSave(m, next) {
+  const p = msgPath(m.id);
+  if (!next) return rtMulti({ [p + "/saved"]: null });
+  const snap = await rt(() => get(ref(rtdb, p)));
+  const cur = snap.exists() ? (snap.val() || {}) : null;
+  const upd = {};
+  if (!cur || cur.senderId == null) {
+    // message DB se poora hat gaya tha -> local copy se dobara bana do
+    const d = { ...m };
+    ["id", "sendError", "deletedFor", "saved", "status"].forEach(k => delete d[k]);
+    Object.entries(clean(d)).forEach(([k, v]) => { upd[p + "/" + k] = v; });
+    upd[p + "/status"] = "read";
+  } else {
+    upd[p + "/deletedFor/" + enc(partnerId)] = null;   // partner ke chat me wapas
+    upd[p + "/deletedFor/" + enc(myId)] = null;
+  }
+  upd[p + "/saved"] = true;
+  return rtMulti(upd);
+}
+function collectSeen(a) {
+  a.forEach(m => {
+    if (document.hidden || m.isDeleted || savedIds.has(m.id)) return;
+    const df = Array.isArray(m.deletedFor) ? m.deletedFor : [];
+    const seen = m.senderId !== myId || m.status === "read";
+    if (!seen) return;
+    if (df.includes(myId) && !df.includes(partnerId)) return;
+    seenToPurge.set(m.id, df.includes(partnerId));
+  });
+}
+// Light update: sirf saved-row class badlo, poori list dobara mat banao (blink/scroll jump nahi).
+function syncSavedState(a) {
+  savedIds.clear();
+  a.forEach(m => {
+    if (localSaved.has(m.id) && !!m.saved === localSaved.get(m.id)) localSaved.delete(m.id);
+    if (isSaved(m)) { savedIds.add(m.id); seenToPurge.delete(m.id); }
+  });
+  collectSeen(a);
+  document.querySelectorAll("#messages > div[data-mid]").forEach(r =>
+    r.classList.toggle("saved-row", savedIds.has(r.dataset.mid)));
+}
+function toggleSave(m, rowEl) {
+  if (!room || !myId || m.isDeleted) return;
+  const next = !isSaved(m);
+  localSaved.set(m.id, next);
+  if (next) { savedIds.add(m.id); seenToPurge.delete(m.id); } else savedIds.delete(m.id);
+  if (rowEl) rowEl.classList.toggle("saved-row", next);   // instant, no full re-render
+  writeSave(m, next).catch(e => {
+    console.warn("Save toggle failed", e);
+    localSaved.delete(m.id);
+    if (rowEl) rowEl.classList.toggle("saved-row", !!m.saved);
+  });
+}
 let lastRenderSig = "", animatedIds = new Set(), firstPaintDone = false;
 function render(s, fromListener) {
   const a = [];
@@ -1161,7 +1306,7 @@ function render(s, fromListener) {
   // chat blink. Only rebuild when something visible actually changed.
   const sig = a.map(m => [m.id, m.status, m.sendError, m.isEdited, m.isDeleted, (m.text || "").length, (m.image || "").length,
     JSON.stringify(m.deletedFor || ""), JSON.stringify(m.reactions || "")].join("|")).join("\n");
-  if (fromListener && sig === lastRenderSig) return;
+  if (fromListener && sig === lastRenderSig) { syncSavedState(a); return; }
   lastRenderSig = sig;
 
   // Cursor for "Load earlier messages": the oldest timestamp currently
@@ -1185,6 +1330,8 @@ function render(s, fromListener) {
   renderedOnce = true;
   updateUnreadBadge();
 
+  const wasFirstPaint = !firstPaintDone;
+  const prevTop = box.scrollTop;
   const frag = document.createDocumentFragment();
   const toMarkRead = [], toMarkDelivered = [];
   let lastDateKey = "";
@@ -1204,8 +1351,13 @@ function render(s, fromListener) {
   // Snapchat-style: remember which messages I have SEEN (received ones I'm
   // viewing now, and my sent ones the partner has read). They are cleared for
   // me only when I leave the chat. Unseen messages are never touched.
+  savedIds.clear();
   a.forEach(m => {
-    if (document.hidden || m.isDeleted) return; // not looking = not seen
+    if (localSaved.has(m.id) && !!m.saved === localSaved.get(m.id)) localSaved.delete(m.id);
+    if (isSaved(m)) { savedIds.add(m.id); seenToPurge.delete(m.id); }
+  });
+  a.forEach(m => {
+    if (document.hidden || m.isDeleted || savedIds.has(m.id)) return; // not looking / saved = never cleared
     const df = Array.isArray(m.deletedFor) ? m.deletedFor : [];
     const seen = m.senderId !== myId || m.status === "read";
     if (!seen) return;
@@ -1238,8 +1390,7 @@ function render(s, fromListener) {
 
     const r = document.createElement("div");
     const isPicked = selectedIds.has(m.id);
-    r.className = "flex p-1 " + (m.senderId === myId ? "justify-end" : "justify-start") + (isPicked ? " select-row" : "");
-    r.style.willChange = "transform,opacity";
+    r.className = "flex p-1 " + (m.senderId === myId ? "justify-end" : "justify-start") + (isPicked ? " select-row" : "") + (savedIds.has(m.id) ? " saved-row" : "");
     r.dataset.mid = m.id;
 
     const b = document.createElement("div");
@@ -1464,6 +1615,25 @@ function render(s, fromListener) {
         longPressTriggered = false;
         return;
       }
+      // Only a tap that lands on the bubble itself counts (never the empty row space).
+      const rc = b.getBoundingClientRect();
+      if (e.clientX < rc.left || e.clientX > rc.right || e.clientY < rc.top || e.clientY > rc.bottom) return;
+      const now = Date.now();
+      if (b._tapTimer && now - b._tapAt < 320) {
+        // 2nd tap in time => double tap = ❤️ like (and the pending save is cancelled)
+        clearTimeout(b._tapTimer); b._tapTimer = null; b._tapAt = 0;
+        heartBurst(b, m);
+        return;
+      }
+      b._tapAt = now;
+      b._tapTimer = setTimeout(() => {
+        b._tapTimer = null;
+        const row = document.querySelector('#messages > [data-mid="' + CSS.escape(m.id) + '"]') || r;
+        const willSave = !isSaved(m);
+        toggleSave(m, row);   // single tap = save, tap again = unsave
+        showMiniToast(willSave ? "⭐ Saved — dono taraf rahega" : "Removed from saved");
+        navigator.vibrate?.(willSave ? 12 : 6);
+      }, 300);
     };
 
     r.append(b);
@@ -1482,6 +1652,7 @@ function render(s, fromListener) {
   });
 
   box.replaceChildren(frag);
+  if (!wasNearBottom && !wasFirstPaint) box.scrollTop = prevTop;   // padhte waqt jump nahi
   firstPaintDone = true;
 
   // One batched write for every newly-read message instead of a separate
@@ -1496,7 +1667,7 @@ function render(s, fromListener) {
 
   // Keep the newest message visible. Android's keyboard changes the
   // visual viewport, so anchor to the real bottom after the DOM is painted.
-  if ((wasNearBottom || box.scrollTop === 0) && !suppressBottomScroll) {
+  if ((wasNearBottom || wasFirstPaint) && !suppressBottomScroll) {
     requestAnimationFrame(() => {
       box.scrollTop = box.scrollHeight;
       requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
@@ -1513,7 +1684,9 @@ const seenToPurge = new Map(); // messageId -> did the partner already clear it?
 let purging = false;
 
 async function clearMessages(entries) {
-  // entries: [[id, partnerAlreadyCleared], ...]
+  // entries: [[id, partnerAlreadyCleared], ...]  (saved messages are never cleared)
+  entries = entries.filter(([id]) => !savedIds.has(id));
+  if (!entries.length) return;
   const build = list => Object.fromEntries(list.map(([id, done]) =>
     done ? [msgPath(id), null] : [msgPath(id) + "/deletedFor/" + enc(myId), true]));
   try {
@@ -1553,21 +1726,24 @@ async function purgeSeen() {
 async function sweepSeen() {
   try {
     // 0) leftovers from a previous session that was closed mid-clear
+    const all = await rt(() => get(MSGS()));
+    const serverSaved = new Set();
+    all.forEach(c => { if ((c.val() || {}).saved) serverSaved.add(c.key); });
     const raw = localStorage.getItem(pendingKey());
     if (raw) {
       const saved = JSON.parse(raw);
-      if (Array.isArray(saved) && saved.length) await clearMessages(saved);
+      if (Array.isArray(saved) && saved.length) await clearMessages(saved.filter(([id]) => !serverSaved.has(id)));
       clearPending();
     }
     const entries = [];
     // Messages the partner cleared that I had already cleared too
     // (the room is tiny because seen messages get deleted, so one read is cheap)
-    const all = await rt(() => get(MSGS()));
     const junk = {};
     all.forEach(c => {
       const v = c.val() || {};
       if (v.senderId == null) { junk[msgPath(c.key)] = null; return; } // ghost node
       const df = Object.keys(v.deletedFor || {}).map(dec);
+      if (v.saved) return; // saved messages stay for both
       if (df.includes(partnerId) && df.includes(myId)) entries.push([c.key, true]);
     });
     if (entries.length) await clearMessages(entries);
@@ -1585,7 +1761,15 @@ document.addEventListener("visibilitychange", () => {
   if (document.hidden) savePending(); // survives even if the browser kills the tab
   else {
     clearPending();                   // came back: nothing was cleared, keep everything
-    if (lastLiveSnap) render(lastLiveSnap);
+    if (lastLiveSnap) {
+      let need = false;
+      lastLiveSnap.forEach(x => {
+        const d = typeof x.data === "function" ? (x.data() || {}) : x;
+        if (d.senderId !== myId && d.status !== "read" && !d.isDeleted) need = true;
+      });
+      if (need) lastRenderSig = "";      // unread aaye the -> read mark karne ke liye rebuild
+      render(lastLiveSnap, true);        // warna sirf light sync, page blink nahi
+    }
   }
 });
 window.addEventListener("pagehide", () => { savePending(); purgeSeen(); });
@@ -1808,6 +1992,8 @@ function goOffline() {
 
 function presence() {
   unPresence?.(); unPresence = null;
+  // Show the last known status instantly while the live value loads.
+  try { const c = JSON.parse(localStorage.getItem("pres_" + partnerId) || "null"); if (c) { lastPartnerPresence = { ...c, online: false, typing: false }; renderPresence(); } } catch (e) {}
 
   presenceReady.then(() => {
     if (!presenceBound) {
@@ -1827,12 +2013,13 @@ function presence() {
     }
     unPresence = onValue(PR(partnerId), s => {
       lastPartnerPresence = s.val() || null;
+      try { localStorage.setItem("pres_" + partnerId, JSON.stringify(lastPartnerPresence)); } catch (e) {}
       renderPresence();
     }, e => console.warn("Presence listen failed", e));
   });
 
   clearInterval(lastSeenRefreshTimer);
-  lastSeenRefreshTimer = setInterval(renderPresence, 5000);
+  lastSeenRefreshTimer = setInterval(() => { if (!lastPartnerPresence || !lastPartnerPresence.online) renderPresence(); }, 20000);
 }
 let typingClearTimer = null;
 let typingIsOn = false;
@@ -1849,7 +2036,7 @@ $("message").addEventListener("input", () => {
   if (!uid || !room) return;
   setTyping(true);
   clearTimeout(typingClearTimer);
-  typingClearTimer = setTimeout(() => setTyping(false), 700);
+  typingClearTimer = setTimeout(() => setTyping(false), 1200);
 });
 updateSendState();
 
@@ -2085,16 +2272,34 @@ document.addEventListener("pointerdown", e => {
 }, { passive: true });
 
 // --- Double-tap a message bubble for a quick ❤️ reaction ---
-function attachHeartDoubleTap(bubbleEl, message) {
-  bubbleEl.addEventListener("dblclick", e => {
-    if (e.target.closest("a, img, button") || message.isDeleted) return;
-    e.preventDefault();
-    toggleReaction(message, "❤️");
-    bubbleEl.classList.remove("heart-pop");
-    void bubbleEl.offsetWidth; // restart animation if double-tapped again quickly
-    bubbleEl.classList.add("heart-pop");
-    setTimeout(() => bubbleEl.classList.remove("heart-pop"), 700);
-  });
+function heartBurst(bubbleEl, message) {
+  if (message.isDeleted) return;
+  const had = message.reactions?.[myId] === "❤️";
+  toggleReaction(message, "❤️");
+  if (had) return;               // un-liked: no animation
+  navigator.vibrate?.([10, 30, 10]);
+  bubbleEl.classList.remove("heart-pop");
+  void bubbleEl.offsetWidth;     // restart animation if double-tapped again quickly
+  bubbleEl.classList.add("heart-pop");
+  setTimeout(() => bubbleEl.classList.remove("heart-pop"), 800);
+}
+function attachHeartDoubleTap() { /* handled by the single tap/double tap logic in render() */ }
+
+// --- Tiny toast (Saved / Removed) ---
+let miniToastTimer = null;
+function showMiniToast(text) {
+  let t = document.getElementById("miniToast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "miniToast";
+    document.getElementById("app").appendChild(t);
+  }
+  t.textContent = text;
+  t.classList.remove("show");
+  void t.offsetWidth;
+  t.classList.add("show");
+  clearTimeout(miniToastTimer);
+  miniToastTimer = setTimeout(() => t.classList.remove("show"), 1400);
 }
 
 function showCallError(title, e) {
@@ -2789,14 +2994,22 @@ $("message").onkeydown = e => {
 };
 
 // Keep the native keyboard/input focused while the compact reply bubble is visible.
+let maxVvH = 0, lastVvH = 0, lastVvW = 0, lastKbCloseAt = 0;
+const kbOpen = () => { const vv = window.visualViewport; return !!vv && vv.height < maxVvH - 100; };
 $("message").addEventListener("blur", () => {
-  // Keep the composer focused. Android's Back button can still hide the
-  // native keyboard; normal send/touch actions won't dismiss it.
-  setTimeout(() => {
+  // Composer focused rakho (message tap/send par keyboard na jaye), lekin agar user ne
+  // Back se keyboard khud band kiya hai to use wapas mat kholo (wahi glitch/"refresh" tha).
+  const refocus = () => {
     if (document.visibilityState === "visible" && document.activeElement !== $("message")) {
       $("message").focus({ preventScroll: true });
     }
-  }, 0);
+  };
+  if (Date.now() - lastKbCloseAt < 800) return;
+  if (kbOpen()) {
+    setTimeout(() => { if (Date.now() - lastKbCloseAt < 800 || !kbOpen()) return; refocus(); }, 200);
+    return;
+  }
+  setTimeout(refocus, 0);
 });
 $("message").addEventListener("focus", () => {
   $("message").classList.add("reply-lock");
@@ -3028,6 +3241,7 @@ function timeAgo(ts) {
 function renderRequests() {
   const n = requests.size;
   $("menuDot").classList.toggle("hidden", n === 0);
+  $("menuDot").textContent = n > 9 ? "9+" : String(n);
   $("reqCount").classList.toggle("hidden", n === 0);
   $("reqCount").textContent = String(n);
   const list = $("requestsList");
@@ -3474,6 +3688,12 @@ function syncAppToVisualViewport() {
 
   // visualViewport.height becomes the visible area above the Android keyboard.
   // Keep the whole chat inside that area so the composer follows the keyboard.
+  const msgBox = $("messages");
+  const stick = msgBox && (msgBox.scrollHeight - msgBox.scrollTop - msgBox.clientHeight < 150);
+  if (window.innerWidth !== lastVvW) { maxVvH = 0; lastVvW = window.innerWidth; }   // rotate
+  if (vv.height > lastVvH + 80 && maxVvH - lastVvH > 100) lastKbCloseAt = Date.now(); // keyboard band hua
+  maxVvH = Math.max(maxVvH, vv.height);
+  lastVvH = vv.height;
   document.documentElement.style.setProperty("--app-height", `${vv.height}px`);
 
   // offsetTop is how far the visible area has scrolled down from the top of
@@ -3482,11 +3702,9 @@ function syncAppToVisualViewport() {
   // no blank strip from ever showing under the composer.
   if (appEl) appEl.style.top = `${vv.offsetTop}px`;
 
-  // Keep the focused input visible after the viewport changes.
-  if (document.activeElement === $("message")) {
-    requestAnimationFrame(() => {
-      $("message").scrollIntoView({ block: "nearest", inline: "nearest" });
-    });
+  // Keyboard khulne/band hone par chat bottom par hi tikka rahe (scrollIntoView se page jump hota tha).
+  if (stick && msgBox) {
+    requestAnimationFrame(() => { msgBox.scrollTop = msgBox.scrollHeight; });
   }
 }
 
