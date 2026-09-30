@@ -1790,46 +1790,50 @@ function fitStatus() {
 }
 window.addEventListener("resize", () => { try { renderPresence(); } catch (e) {} });
 
-let presenceBound = false;
-function presence() {
+let presenceBound = false, rtConnected = false;
+
+// online karo + disconnect hone par server se offline karwane ka rule lagao
+function armPresence() {
+  if (!myId || !rtConnected) return;
   const me = PR(myId);
+  onDisconnect(me).update({ online: false, typing: false, lastSeen: serverTimestamp() }).catch(console.warn);
+  update(me, { online: true, lastSeen: serverTimestamp() }).catch(console.warn);
+}
+
+function goOffline() {
+  if (!myId) return;
+  typingIsOn = false;
+  update(PR(myId), { online: false, typing: false, lastSeen: serverTimestamp() }).catch(() => {});
+}
+
+function presence() {
   unPresence?.(); unPresence = null;
-  const goOnline = () => update(me, { online: true, lastSeen: serverTimestamp() }).catch(console.warn);
-  const goOffline = () => update(me, { online: false, typing: false, lastSeen: serverTimestamp() }).catch(() => {});
 
   presenceReady.then(() => {
-    // Fires on first connect AND on every reconnect. The server runs the onDisconnect
-    // write by itself when the connection dies (tab closed, net lost, phone locked),
-    // so there is NO 5s heartbeat and no per-write quota.
-    if (!presenceBound) onValue(ref(rtdb, ".info/connected"), snap => {
-      if (snap.val() !== true) return;
-      onDisconnect(me).update({ online: false, typing: false, lastSeen: serverTimestamp() })
-        .then(goOnline).catch(console.warn);
-    });
+    if (!presenceBound) {
+      presenceBound = true;
+      onValue(ref(rtdb, ".info/connected"), snap => {
+        rtConnected = snap.val() === true;
+        if (rtConnected) armPresence();
+      });
+      // tab switch par offline nahi hoga; wapas aane par sirf online refresh hoga
+      document.addEventListener("visibilitychange", () => {
+        if (myId && !document.hidden) armPresence();
+      });
+      window.addEventListener("pageshow", armPresence);
+      window.addEventListener("pagehide", goOffline);
+    } else {
+      armPresence();
+    }
     unPresence = onValue(PR(partnerId), s => {
       lastPartnerPresence = s.val() || null;
       renderPresence();
     }, e => console.warn("Presence listen failed", e));
   });
 
-  if (!presenceBound) {
-    presenceBound = true;
-    document.addEventListener("visibilitychange", () => {
-      if (myId && !document.hidden) presenceReady.then(goOnline);
-    });
-    window.addEventListener("pageshow", () => { if (myId) presenceReady.then(goOnline); });
-    window.addEventListener("pagehide", () => {
-      if (!myId) return;
-      typingIsOn = false;
-      goOffline();
-    });
-  }
-
-  // Re-render every 5s (local only, free) so "last seen" text keeps counting up.
   clearInterval(lastSeenRefreshTimer);
   lastSeenRefreshTimer = setInterval(renderPresence, 5000);
 }
-
 let typingClearTimer = null;
 let typingIsOn = false;
 function setTyping(isTyping) {
@@ -1845,7 +1849,7 @@ $("message").addEventListener("input", () => {
   if (!uid || !room) return;
   setTyping(true);
   clearTimeout(typingClearTimer);
-  typingClearTimer = setTimeout(() => setTyping(false), 1800);
+  typingClearTimer = setTimeout(() => setTyping(false), 700);
 });
 updateSendState();
 
