@@ -4,7 +4,68 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta http-equiv="Permissions-Policy" content="camera=(self), microphone=(self)">
-<meta name="call-build" content="Premium Call v6 - 2026-10-06"><title>Secure Cloud</title>
+<meta name="call-build" content="Premium Call v6 - 2026-10-06">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src * data: blob:; media-src * data: blob:; font-src * data:; connect-src https: wss:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<meta http-equiv="Cache-Control" content="no-store">
+<script>
+(function(){
+"use strict";
+/* 1. Iframe / clickjacking protection */
+try{if(top!==self){document.documentElement.innerHTML="";top.location.href=self.location.href}}catch(e){document.documentElement.innerHTML=""}
+
+/* 2. Block recording / capture of call video (JS level) */
+var NA=function(){return new DOMException("Not allowed","NotAllowedError")};
+try{Object.defineProperty(window,"MediaRecorder",{value:undefined,writable:false,configurable:false})}catch(e){}
+try{Object.defineProperty(window,"ImageCapture",{value:undefined,writable:false,configurable:false})}catch(e){}
+try{if(navigator.mediaDevices)navigator.mediaDevices.getDisplayMedia=function(){return Promise.reject(NA())}}catch(e){}
+["captureStream","mozCaptureStream"].forEach(function(n){
+ try{HTMLMediaElement.prototype[n]=function(){throw NA()}}catch(e){}
+ try{HTMLCanvasElement.prototype[n]=function(){throw NA()}}catch(e){}
+});
+
+/* 3. Call video elements: no download / cast / save menu */
+function lockVideo(v){
+ if(!v)return;
+ v.setAttribute("controlsList","nodownload noremoteplayback");
+ v.setAttribute("disableRemotePlayback","");
+ v.controls=false;
+ v.oncontextmenu=function(e){e.preventDefault();return false};
+ v.draggable=false;
+}
+function lockCallVideos(){lockVideo(document.getElementById("remote"));lockVideo(document.getElementById("local"))}
+document.addEventListener("DOMContentLoaded",function(){
+ lockCallVideos();
+ try{new MutationObserver(lockCallVideos).observe(document.body,{childList:true,subtree:true})}catch(e){}
+});
+
+/* 4. Anti-inspect deterrents (cannot fully stop a determined person) */
+var editable=function(t){return t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable)};
+document.addEventListener("contextmenu",function(e){if(!editable(e.target))e.preventDefault()},true);
+document.addEventListener("dragstart",function(e){e.preventDefault()},true);
+document.addEventListener("keydown",function(e){
+ var k=(e.key||"").toLowerCase(),c=e.ctrlKey||e.metaKey;
+ if(e.key==="F12"||
+   (c&&e.shiftKey&&(k==="i"||k==="j"||k==="c"||k==="k"))||
+   (c&&(k==="u"||k==="s"||k==="p"))||
+   (e.metaKey&&e.altKey&&(k==="i"||k==="j"||k==="c"))){
+  e.preventDefault();e.stopPropagation();return false}
+},true);
+/* Desktop DevTools detection: hide app while DevTools is docked open */
+var touch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
+if(!touch){
+ var hidden=false;
+ setInterval(function(){
+  var open=(window.outerWidth-window.innerWidth>250)||(window.outerHeight-window.innerHeight>340);
+  var app=document.getElementById("app");
+  if(!app)return;
+  if(open&&!hidden){hidden=true;app.style.display="none"}
+  else if(!open&&hidden){hidden=false;app.style.display=""}
+ },800);
+}
+})();
+</script><title>Secure Cloud</title>
 <script>document.documentElement.classList.add("lite")</script>
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js">
@@ -482,6 +543,11 @@ html.lite #call.ctl-hidden .cv-ui{transition:opacity .22s ease,transform .22s ea
 #call.ctl-hidden .cv-pip{opacity:1!important;visibility:visible!important;pointer-events:auto!important}
 #call #flipCam:not(.hidden){display:flex}
 </style>
+<style id="mobile-call-frame">
+/* Video call always uses the same mobile-size frame as the chat (max 450px, centered) */
+#call{left:0!important;right:0!important;top:0!important;bottom:auto!important;width:100%!important;max-width:450px!important;margin:0 auto!important;height:var(--app-height,100dvh)!important;box-shadow:0 0 0 100vmax #020617,0 24px 80px #0f172a59}
+#incoming{max-width:450px;margin:0 auto}
+</style>
 </head>
 <body>
 <div id="app">
@@ -589,7 +655,7 @@ html.lite #call.ctl-hidden .cv-ui{transition:opacity .22s ease,transform .22s ea
 </div>
 </section>
 <section id="call" class="screen hidden text-white" aria-label="Call screen">
-<video id="remote" class="cv-video cv-main" autoplay playsinline></video>
+<video id="remote" class="cv-video cv-main" autoplay playsinline controlslist="nodownload noremoteplayback" disableremoteplayback oncontextmenu="return false"></video>
 <div id="audioOnly" class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
 <div id="callAvatarWrap" class="relative w-28 h-28 flex items-center justify-center">
 <span class="call-ring absolute inset-0 rounded-full border-2 border-teal-300/50"></span>
@@ -601,7 +667,7 @@ html.lite #call.ctl-hidden .cv-ui{transition:opacity .22s ease,transform .22s ea
 </div>
 </div>
 </div>
-<video id="local" class="cv-video cv-pip mirror" autoplay muted playsinline aria-label="Your camera preview. Drag to move, tap to swap."></video>
+<video id="local" class="cv-video cv-pip mirror" autoplay muted playsinline controlslist="nodownload noremoteplayback" disableremoteplayback oncontextmenu="return false" aria-label="Your camera preview. Drag to move, tap to swap."></video>
 <div id="callTop" class="cv-top cv-ui">
 <b id="callName"></b>
 <p id="callState" role="status" aria-live="polite">Calling…</p>
