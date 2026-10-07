@@ -547,6 +547,14 @@ html.lite #call.ctl-hidden .cv-ui{transition:opacity .22s ease,transform .22s ea
 /* Video call always uses the same mobile-size frame as the chat (max 450px, centered) */
 #call{left:0!important;right:0!important;top:0!important;bottom:auto!important;width:100%!important;max-width:450px!important;margin:0 auto!important;height:var(--app-height,100dvh)!important;box-shadow:0 0 0 100vmax #020617,0 24px 80px #0f172a59}
 #incoming{max-width:450px;margin:0 auto}
+#call .cv-pip{cursor:pointer;border-radius:16px;border:1.5px solid rgba(255,255,255,.55)!important;box-shadow:0 8px 28px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.08)!important;transition:left .16s cubic-bezier(.22,1,.36,1),top .16s cubic-bezier(.22,1,.36,1),transform .16s ease,box-shadow .16s ease,opacity .2s ease}
+#call .cv-pip:active:not(.dragging){transform:scale(.97)}
+#call .cv-pip:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
+#call .cv-pip.dragging{cursor:grabbing}
+#call .cv-pip.pip-empty{opacity:.92;background:linear-gradient(160deg,#1f2937,#0b1020)}
+#call .cv-main.swap-in{animation:swapIn .34s cubic-bezier(.22,1,.36,1)}
+@keyframes swapIn{from{opacity:.35;transform:scale(1.04)}to{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){#call .cv-main.swap-in{animation:none}}
 </style>
 </head>
 <body>
@@ -969,7 +977,8 @@ function applyRoles(){
 }
 function updateBackdrop(){
  const show=!localIsSwapped&&(!callIsVideo||!remoteVideoLive||peerCamOff);
- $("audioOnly").classList.toggle("hidden",!show)
+ $("audioOnly").classList.toggle("hidden",!show);
+ $("remote").classList.toggle("pip-empty",localIsSwapped&&!(remoteVideoLive&&!peerCamOff))
 }
 function updateFit(){
  const m=mainEl();if(!m||!callIsVideo)return;
@@ -1028,9 +1037,20 @@ function pipUp(e){
  try{v.releasePointerCapture(e.pointerId)}catch{}
  v.classList.remove("dragging");
  if(e.type!=="pointercancel"&&pipDrag.moved)clampPipPos();
+ else if(e.type==="pointerup"&&!pipDrag.moved)swapVideos();
  e.preventDefault();e.stopPropagation();
 }
-function swapVideos(){return}
+function swapVideos(){
+ if(!callActive||!callIsVideo||!hasLocalVideo||call.classList.contains("hidden"))return;
+ localIsSwapped=!localIsSwapped;
+ pipPos={x:null,y:null};pipShown={x:null,y:null};pipMoved=false;
+ applyRoles();
+ const m=mainEl();m.classList.remove("swap-in");void m.offsetWidth;m.classList.add("swap-in");
+ setTimeout(()=>m.classList.remove("swap-in"),380);
+ try{navigator.vibrate&&navigator.vibrate(8)}catch{}
+ if(localIsSwapped&&!swapVideos.hinted){swapVideos.hinted=true;try{callToast("Tap the small video to switch back",2600)}catch{}}
+ try{playRemote()}catch{}
+}
 
 /* ---------- controls: show / auto-hide ---------- */
 const ctlCanHide=()=>callIsVideo&&connectedOnce&&callActive&&!call.classList.contains("hidden");
@@ -1518,7 +1538,7 @@ function reset(){
   if(e.key==="Escape"&&moreOpen){closeMore();return}
   ctlVisible?armHide():showControls()
  });
- ["local","remote"].forEach(id=>{const v=$(id);v.addEventListener("pointerdown",pipDown);v.addEventListener("pointermove",pipMove);v.addEventListener("pointerup",pipUp);v.addEventListener("pointercancel",pipUp)});
+ ["local","remote"].forEach(id=>{const v=$(id);v.addEventListener("pointerdown",pipDown);v.addEventListener("pointermove",pipMove);v.addEventListener("pointerup",pipUp);v.addEventListener("pointercancel",pipUp);v.setAttribute("tabindex","0");v.addEventListener("keydown",ev=>{if((ev.key==="Enter"||ev.key===" ")&&v.classList.contains("cv-pip")){ev.preventDefault();swapVideos()}})});
  $("remote").addEventListener("resize",()=>{if($("remote").videoWidth>0){remoteVideoLive=true;updateBackdrop()}updateFit();sizePip();placePip()});
  $("remote").addEventListener("playing",()=>{if($("remote").videoWidth>0){remoteVideoLive=true;updateBackdrop()}updateFit()});
  $("local").addEventListener("loadedmetadata",()=>{sizePip();placePip()});
@@ -1527,6 +1547,7 @@ function reset(){
  typeof ResizeObserver!=="undefined"?new ResizeObserver(relayout).observe(call):window.addEventListener("resize",relayout);
  window.addEventListener("orientationchange",()=>setTimeout(relayout,250));
  document.addEventListener("fullscreenchange",()=>{moreOpen&&refreshMore();setTimeout(relayout,150)});
+ window.addEventListener("pagehide",()=>{try{callId&&!callEnded&&finishCall("ended")}catch{}});
  window.addEventListener("offline",()=>{if(!callActive)return;reconnecting=connectedOnce;refreshPill();callToast("You're offline. Waiting for the connection…",4000)});
  window.addEventListener("online",()=>{if(!callActive)return;callToast("Back online");pc&&!isUp(pc)&&amCaller&&attemptIceRestart()});
  navigator.mediaDevices?.addEventListener&&!devWatch&&(devWatch=true,navigator.mediaDevices.addEventListener("devicechange",()=>{callActive&&refreshDevices()}));
@@ -1536,7 +1557,7 @@ function reset(){
  };
  $("toggleVideo").onclick=()=>{
   const t=stream?.getVideoTracks()[0];if(!t)return;
-  t.enabled=!t.enabled;cvSetBtn("toggleVideo",!t.enabled,"Turn camera off","Turn camera on");signalMedia({cam:t.enabled})
+  t.enabled=!t.enabled;cvSetBtn("toggleVideo",!t.enabled,"Turn camera off","Turn camera on");signalMedia({cam:t.enabled});if(!t.enabled&&localIsSwapped)swapVideos()
  };
  $("speaker").onclick=()=>{loudOn=!loudOn;cvSetBtn("speaker",!loudOn,"Turn speaker off","Turn speaker on");routeAudio(false).catch(cvNoop).then(()=>{loudOn&&playRemote()});callToast(loudOn?"Speaker on":"Speaker off",1500)};
  $("flipCam").onclick=()=>{flipCamera().catch(e=>{console.warn("Flip camera failed:",e);flipping=false;$("flipCam").disabled=false;callToast("Couldn't switch camera")})};
