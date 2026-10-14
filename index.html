@@ -712,6 +712,21 @@ html.lite .mx-recdot{animation-duration:1s!important;animation-iteration-count:i
 #dpViewerImg{will-change:transform;-webkit-user-drag:none;user-select:none}
 #dpViewerClose,#dpViewerChange{z-index:3}
 </style>
+<style id="st-upload-ring">
+.st-up{position:absolute;inset:-5px;z-index:2;pointer-events:none;display:none;border-radius:50%}
+.st-wrap.st-uploading .st-up,.st-wrap.st-failed .st-up{display:block}
+.st-up svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.st-up circle{fill:none;stroke-width:6;stroke-linecap:round}
+.st-up .tk{stroke:rgba(255,255,255,.3)}
+.st-up .pg{stroke:var(--bubble-tick-read,#fcd34d);stroke-dasharray:295.31;stroke-dashoffset:295.31}
+.st-up .st-pct{position:absolute;inset:5px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font:800 10.5px/1 Manrope,Inter,system-ui,sans-serif;letter-spacing:-.02em;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:center}
+.st-wrap.st-uploading #dpBtn.st-ring,.st-wrap.st-failed #dpBtn.st-ring{outline-color:transparent!important;box-shadow:none!important}
+.st-wrap.st-failed .st-up .pg{stroke:#ef4444}
+.st-wrap.st-failed .st-up .st-pct{background:rgba(127,29,29,.75);font-size:13px}
+.st-wrap.st-failed .st-up{pointer-events:none}
+#stToast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,12px);max-width:86vw;padding:10px 16px;border-radius:999px;background:rgba(17,24,39,.92);color:#fff;font:600 13px/1.3 Manrope,Inter,system-ui,sans-serif;text-align:center;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:10003}
+#stToast.on{opacity:1;transform:translate(-50%,0)}
+</style>
 </head>
 <body>
 <div id="app">
@@ -1987,6 +2002,7 @@ $("myId").value=localStorage.getItem("whatsapp_my_id")||"",$("connect").onclick=
 let myItems=[],pItems=[],myRaw={},pRaw={},pending=null,vs=null,tokN=0,pDp=null;const cache=new Map();
 const dpBtn=g("dpBtn"),wrap=document.createElement("span");wrap.className="st-wrap";dpBtn.parentNode.insertBefore(wrap,dpBtn);wrap.appendChild(dpBtn);
 const plus=document.createElement("button");plus.id="stPlus";plus.type="button";plus.title="Add status";plus.setAttribute("aria-label","Add status");plus.innerHTML='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';wrap.appendChild(plus);
+const upEl=document.createElement("span");upEl.className="st-up";upEl.setAttribute("role","progressbar");upEl.setAttribute("aria-label","Status upload progress");upEl.setAttribute("aria-valuemin","0");upEl.setAttribute("aria-valuemax","100");upEl.innerHTML='<svg viewBox="0 0 100 100" aria-hidden="true"><circle class="tk" cx="50" cy="50" r="47"/><circle class="pg" cx="50" cy="50" r="47"/></svg><b class="st-pct">0%</b>';wrap.appendChild(upEl);
 
 const seenBy=(it,u)=>!!(it.seen&&it.seen[enc(u)]),isSeenP=it=>seenBy(it,myId)||!!localStorage.getItem("stseen_"+it.id);
 const list=v=>Object.entries(v||{}).map(([id,x])=>({id,...x})).filter(x=>x.ts&&Date.now()-x.ts<TTL).sort((a,b)=>a.ts-b.ts);
@@ -2006,7 +2022,7 @@ onSnapshot(SM(partnerId),s=>{pRaw=s.data()?.items||{};gotP=!0;refresh()},e=>cons
 getDoc(P(partnerId)).then(sn=>{pDp=sn.data()?.dp||null}).catch(()=>{})})},400);
 
 const sheet=g("stSheet"),sh=v=>sheet.classList.toggle("hidden",!v);
-dpBtn.onclick=()=>{try{fillSheet()}catch{}sh(1)};g("stOptCancel").onclick=()=>sh(0);sheet.onclick=e=>{e.target===sheet&&sh(0)};
+dpBtn.onclick=()=>{if(upFailed){failTap();return}try{fillSheet()}catch{}sh(1)};g("stOptCancel").onclick=()=>sh(0);sheet.onclick=e=>{e.target===sheet&&sh(0)};
 g("stOptProfile").onclick=()=>{sh(0);const src=g("partnerDp").src;src&&(g("dpViewerImg").src=src,g("dpViewer").classList.remove("hidden"))};
 g("stOptMy").onclick=()=>{sh(0);openV(myItems,myId,0)};
 const pick=()=>{g("stFile").value="";g("stFile").click()};g("stOptAdd").onclick=()=>{sh(0);pick()};
@@ -2023,12 +2039,54 @@ if(!isFinite(dur)){URL.revokeObjectURL(url);return alert("This video could not b
 pending={f,url,type:isV?"video":"image",dur:Math.round(dur)};
 const el=document.createElement(isV?"video":"img");el.src=url;isV&&(el.controls=!0,el.playsInline=!0,el.muted=!0,el.loop=!0);g("stPrev").appendChild(el);compose.classList.remove("hidden")};
 g("stCancel").onclick=closeC;
-g("stPost").onclick=async()=>{if(!pending||!myId)return;const pd=pending,bt=g("stPost"),pr=g("stProg");bt.disabled=!0;pr.textContent="Preparing…";
-try{let mime,n,getC;if(pd.type==="image"){const r=await resizeImageDataUrl(await readURL(pd.f),1280),b64=r.split(",")[1];mime="image/jpeg";n=Math.ceil(b64.length/CH);getC=async i=>b64.slice(i*CH,(i+1)*CH)}else{mime=pd.f.type||"video/mp4";const BS=CH/4*3;n=Math.max(1,Math.ceil(pd.f.size/BS));getC=async i=>(await readURL(pd.f.slice(i*BS,(i+1)*BS))).split(",")[1]}
-const id="s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),put=i=>tr(async()=>{const d=await getC(i);return presenceReady.then(()=>setDoc(SD(id,i),{d}))});
-for(let i=0;i<n;i+=3){await Promise.all([0,1,2].filter(k=>i+k<n).map(k=>put(i+k)));pr.textContent="Uploading… "+Math.min(100,Math.round((i+3)/n*100))+"%"}
-await tr(()=>itemW(myId,id,{t:pd.type,m:mime,n,ts:Date.now(),c:g("stCap").value.trim(),d:pd.dur}));
-closeC()}catch(e){console.error("Status upload failed",e);pr.textContent="Upload failed ("+(e&&(e.code||e.message)||"unknown error")+"). Please try again.";bt.disabled=!1}};
+/* ===== Background status upload (ring + % on DP) ===== */
+const UPC=5,upPg=upEl.querySelector(".pg"),upPt=upEl.querySelector(".st-pct"),UPC_LEN=2*Math.PI*47,upq=[];
+let upBusy=!1,upFailed=!1,upShown=0,upTarget=0,upRaf=0,toastT=0;
+const toast=m=>{let t=g("stToast");t||(t=document.createElement("div"),t.id="stToast",t.setAttribute("role","status"),t.setAttribute("aria-live","polite"),document.body.appendChild(t));t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2800)};
+const upPaint=v=>{upPg.style.strokeDashoffset=UPC_LEN*(1-v/100);const r=Math.round(v);upPt.textContent=r+"%";upEl.setAttribute("aria-valuenow",r)};
+const upLoop=()=>{upRaf=0;const d=upTarget-upShown;upShown=Math.abs(d)<.4?upTarget:upShown+d*.2;upPaint(upShown);upShown!==upTarget&&(upRaf=requestAnimationFrame(upLoop))};
+const upTo=v=>{upTarget=Math.max(upTarget,Math.min(100,v));upRaf||(upRaf=requestAnimationFrame(upLoop))};
+const upReset=()=>{cancelAnimationFrame(upRaf);upRaf=0;upShown=upTarget=0;upPaint(0)};
+const upState=m=>{wrap.classList.toggle("st-uploading",m==="up");wrap.classList.toggle("st-failed",m==="fail");m==="fail"&&(cancelAnimationFrame(upRaf),upRaf=0,upPt.textContent="!")};
+const b64=bl=>new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>{const x=r.result;res(x.slice(x.indexOf(",")+1))};r.onerror=()=>rej(r.error);r.readAsDataURL(bl)});
+async function encodeImage(f){
+const MAX=1600;let bmp=null,objU=null;
+try{bmp=await createImageBitmap(f,{imageOrientation:"from-image"})}catch{bmp=null}
+try{
+if(!bmp){objU=URL.createObjectURL(f);bmp=await new Promise((res,rej)=>{const im=new Image;im.onload=()=>res(im);im.onerror=()=>rej(new Error("decode"));im.src=objU})}
+const w=bmp.width||bmp.naturalWidth,h=bmp.height||bmp.naturalHeight;if(!w||!h)throw new Error("decode");
+const k=Math.min(1,MAX/Math.max(w,h)),W=Math.max(1,Math.round(w*k)),H=Math.max(1,Math.round(h*k));
+const cv=document.createElement("canvas");cv.width=W;cv.height=H;const cx=cv.getContext("2d",{alpha:!1});
+cx.fillStyle="#000";cx.fillRect(0,0,W,H);cx.imageSmoothingEnabled=!0;cx.imageSmoothingQuality="high";cx.drawImage(bmp,0,0,W,H);
+const toB=q=>new Promise((res,rej)=>cv.toBlob(b=>b?res(b):rej(new Error("encode")),"image/jpeg",q));
+let b=await toB(.86);b.size>12e5&&(b=await toB(.74));return b
+}finally{bmp&&bmp.close&&bmp.close();objU&&URL.revokeObjectURL(objU)}}
+const upClean=job=>{const n=job.n||0;n&&Promise.allSettled(Array.from({length:n},(_,i)=>deleteDoc(SD(job.id,i))))};
+async function runJob(job){
+upFailed=!1;upReset();upState("up");
+try{
+if(!job.blob){
+try{job.blob=job.type==="image"?await encodeImage(job.f):job.f}catch(e){console.error("Status prepare failed",e);upState(null);toast("This file couldn't be processed");return"drop"}
+job.mime=job.type==="image"?"image/jpeg":job.f.type||"video/mp4";
+job.n=Math.max(1,Math.ceil(job.blob.size/BS))}
+upTo(8);
+const n=job.n,blob=job.blob;let next=0,done=job.ok.size,dead=!1;
+done&&upTo(8+done/n*92);
+const worker=async()=>{for(;;){if(dead)return;const i=next++;if(i>=n)return;if(job.ok.has(i))continue;
+try{const d=await b64(blob.slice(i*BS,(i+1)*BS));await tr(()=>presenceReady.then(()=>setDoc(SD(job.id,i),{d})),3);job.ok.add(i);done++;upTo(8+done/n*92)}catch(e){dead=!0;throw e}}};
+await Promise.all(Array.from({length:Math.min(UPC,n)},worker));
+await tr(()=>itemW(job.owner,job.id,{t:job.type,m:job.mime,n,ts:Date.now(),c:job.cap,d:job.dur}),3);
+try{const bl=new Blob([blob],{type:job.mime}),u=URL.createObjectURL(bl);cache.set(job.id,u);idb.set(job.id,bl)}catch{}
+upTo(100);await new Promise(r=>setTimeout(r,500));upState(null);toast("Status posted");return"ok"
+}catch(e){console.error("Status upload failed",e);upFailed=!0;upState("fail");toast("Status upload failed \u2014 tap your photo to retry");return"fail"}}
+async function pump(){if(upBusy)return;upBusy=!0;try{while(upq.length){const r=await runJob(upq[0]);if(r==="fail")break;upq.shift()}}finally{upBusy=!1}}
+async function failTap(){const job=upq[0];if(!job){upFailed=!1;upState(null);return}const ok=await askConfirm("Status upload failed. Retry now? (Cancel will discard it)","Retry");if(!upFailed)return;if(ok)pump();else{upFailed=!1;upState(null);upq.shift();upClean(job);pump()}}
+window.addEventListener("online",()=>{upFailed&&upq.length&&!upBusy&&pump()});
+window.addEventListener("beforeunload",e=>{(upBusy||upq.length)&&(e.preventDefault(),e.returnValue="")});
+const BS=CH/4*3;
+g("stPost").onclick=()=>{if(!pending||!myId)return;const pd=pending,cap=g("stCap").value.trim();closeC();
+const job={f:pd.f,type:pd.type,dur:pd.dur,cap,owner:myId,id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),ok:new Set()};
+upq.push(job);toast(upBusy||upq.length>1?"Added to upload queue":"Uploading status in background\u2026");pump()};
 const inflight=new Map(),queued=new Set(),failed=new Set();
 const idb=(()=>{let p;const open=()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("st-media",1);r.onupgradeneeded=()=>r.result.createObjectStore("m");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}));
 const tx=(mode,fn)=>open().then(db=>new Promise((res,rej)=>{const t=db.transaction("m",mode),q=fn(t.objectStore("m"));t.oncomplete=()=>res(q&&q.result);t.onerror=t.onabort=()=>rej(t.error)}));
