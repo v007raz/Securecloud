@@ -950,7 +950,7 @@ html.lite .mx-recdot{animation-duration:1s!important;animation-iteration-count:i
 <button id="flipCam" type="button" class="cv-btn hidden" title="Flip camera" aria-label="Flip camera">
 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 8h-9a5 5 0 0 0-5 5"/><path d="M4 16h9a5 5 0 0 0 5-5"/><path d="M17 5l3 3-3 3M7 13l-3 3 3 3"/></svg>
 </button>
-<button id="speaker" type="button" class="cv-btn is-off" title="Speaker off (earpiece) - tap for speaker" aria-label="Speaker off, tap to turn speaker on" aria-pressed="true">
+<button id="speaker" type="button" class="cv-btn is-off" title="Speaker off (muted) - tap to turn on" aria-label="Speaker off, tap to turn on" aria-pressed="true">
 <svg class="ic-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
 <svg class="ic-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9.5l5 5m0-5-5 5"/></svg>
 <svg class="ic-ear" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13v-2a9 9 0 0 1 18 0v2"/><path d="M3 13v4a2 2 0 0 0 2 2h2v-7H5a2 2 0 0 0-2 2ZM21 13v4a2 2 0 0 1-2 2h-2v-7h2a2 2 0 0 1 2 2Z"/><path d="M17 19c-.5 1.2-1.6 2-3 2h-2"/></svg>
@@ -1469,8 +1469,24 @@ function startCallTimer(startAt){callConnectedAt=Number(startAt)||nowSrv();$("ca
 function stopCallTimer(){clearInterval(callDurationTimer);callDurationTimer=null;callConnectedAt=0;$("callDuration").textContent="";$("callDuration").classList.add("hidden")}
 
 /* ---------- remote media playback (autoplay-policy safe) ---------- */
+const CALL_VOL_CAP=.3;let _ac=null,_ga=null,_asrc=null,_akey="",_aMuteGuard=false;
+function syncCallAudio(){
+ const r=$("remote");if(!r)return;
+ const audible=loudOn||!!outDevs.find(isExtOut),target=audible?CALL_VOL_CAP:0;
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw 0;
+  if(!_ac||_ac.state==="closed"){_ac=new AC({latencyHint:"interactive"});_ga=_ac.createGain();_ga.gain.value=target;_ga.connect(_ac.destination);_akey="";_asrc=null}
+  if(_ac.state==="suspended")_ac.resume().catch(()=>{});
+  const ms=r.srcObject,tr=ms&&ms.getAudioTracks?ms.getAudioTracks():[],key=tr.map(t=>t.id).join();
+  if(key!==_akey){try{_asrc&&_asrc.disconnect()}catch{}_asrc=null;_akey=key;if(tr.length){_asrc=_ac.createMediaStreamSource(new MediaStream(tr));_asrc.connect(_ga)}}
+  _ga.gain.setTargetAtTime(target,_ac.currentTime,.02);
+  r.muted=true;r.volume=1;
+  if(!_aMuteGuard){_aMuteGuard=true;r.addEventListener("volumechange",()=>{if(_asrc&&!r.muted)r.muted=true})}
+ }catch(e){r.muted=!audible;r.volume=CALL_VOL_CAP}
+}
+document.addEventListener("pointerdown",()=>{_ac&&_ac.state==="suspended"&&_ac.resume().catch(()=>{})},true);
 async function playRemote(){
- const r=$("remote");r.muted=!speakerOn||!!_lb;r.volume=1;!loudOn&&setTimeout(()=>routeAudio(false).catch(()=>{}),0);
+ const r=$("remote");r.muted=!speakerOn||!!_lb;r.volume=1;syncCallAudio();setTimeout(()=>routeAudio(false).catch(()=>{}),0);
  try{await r.play();needUnmute=false;$("tapPlay").classList.add("hidden")}
  catch(e){
   if(e&&e.name==="AbortError")return;
@@ -1679,7 +1695,7 @@ async function routeAudio(announce){
   const t=ext||(loudOn?spk:null)||(useEar?ear:null);
   try{await r.setSinkId(t?t.deviceId:"")}catch(e){console.debug("setSinkId skipped",e&&e.name)}
  }
- await earpieceRoute(!loudOn&&!ext&&!useEar);
+ await earpieceRoute(false);syncCallAudio();
  const id=ext?ext.deviceId:null;
  if(announce&&id!==lastExtId)callToast(ext?"Connected: "+(ext.label||"headset"):(lastExtId?"Headset removed":""),2500);
  lastExtId=id
@@ -1964,7 +1980,7 @@ function setupCallScreen(video,localVideo){
  call.classList.remove("cv-live","ctl-hidden");call.classList.toggle("cv-audio",!video);
  $("callMore").classList.add("hidden");$("moreBtn").setAttribute("aria-expanded","false");$("callStats").classList.add("hidden");$("tapPlay").classList.add("hidden");
  $("peerMic").classList.add("hidden");$("netQ").classList.add("hidden");$("netQ").dataset.q="good";refreshPill();disarmEnd();
- cvSetBtn("mute",false,"Mute microphone","Unmute microphone");cvSetBtn("toggleVideo",false,"Turn camera off","Turn camera on");loudOn=false;lastExtId=null;cvSetBtn("speaker",true,"Speaker on, tap to switch to earpiece","Speaker off, tap to turn speaker on");deviceAdapted=false;deviceKind="";clearTimeout(adaptTimer);call.style.removeProperty("--call-w");document.querySelector(".cv-morewrap").classList.toggle("hidden",!video);
+ cvSetBtn("mute",false,"Mute microphone","Unmute microphone");cvSetBtn("toggleVideo",false,"Turn camera off","Turn camera on");loudOn=false;lastExtId=null;cvSetBtn("speaker",true,"Speaker on (30% volume), tap to mute","Speaker off (muted), tap to turn on");deviceAdapted=false;deviceKind="";clearTimeout(adaptTimer);call.style.removeProperty("--call-w");document.querySelector(".cv-morewrap").classList.toggle("hidden",!video);
  $("toggleVideo").classList.toggle("hidden",!hasLocalVideo);$("flipCam").classList.toggle("hidden",!hasLocalVideo);
  $("remote").muted=true;$("callName").textContent=cap(partnerId);
  setCallAvatar($("callAvatarImg"),$("callAvatarInitial"),partnerId);$("callAvatarWrap").classList.remove("connected");
@@ -2098,7 +2114,7 @@ function reset(){
   const t=stream?.getVideoTracks()[0];if(!t)return;
   t.enabled=!t.enabled;cvSetBtn("toggleVideo",!t.enabled,"Turn camera off","Turn camera on");signalMedia({cam:t.enabled});if(!t.enabled&&localIsSwapped)swapVideos()
  };
- $("speaker").onclick=()=>{loudOn=!loudOn;cvSetBtn("speaker",!loudOn,"Speaker on, tap to switch to earpiece","Speaker off, tap to turn speaker on");routeAudio(false).catch(cvNoop).then(()=>{loudOn&&playRemote()});callToast(loudOn?"Speaker on":"Speaker off \u2014 earpiece",1500)};
+ $("speaker").onclick=()=>{loudOn=!loudOn;syncCallAudio();cvSetBtn("speaker",!loudOn,"Speaker on (30% volume), tap to mute","Speaker off (muted), tap to turn on");routeAudio(false).catch(cvNoop).then(()=>{loudOn&&playRemote()});callToast(loudOn?"Speaker on":"Speaker off \u2014 muted",1500)};
  $("flipCam").onclick=()=>{flipCamera().catch(e=>{console.warn("Flip camera failed:",e);flipping=false;$("flipCam").disabled=false;callToast("Couldn't switch camera")})};
  $("moreBtn").onclick=()=>moreOpen?closeMore():openMore();
  $("end").onclick=onEndTap;
