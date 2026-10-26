@@ -972,8 +972,7 @@ button,#chatHeader,#menu,#composer button{-webkit-user-select:none;user-select:n
 <div class="mn-sec">Device</div>
 <button id="freshBtn" type="button" role="menuitemcheckbox" aria-checked="true"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></i><span class="mn-t"><b>Fresh start on open</b><small>Har open par cache &amp; storage saaf</small></span><i class="mn-sw"></i></button>
 <button id="clearCacheBtn" type="button" role="menuitem"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></svg></i><span class="mn-t"><b>Clear cache &amp; reload</b><small>Abhi turant saaf karke reload</small></span></button>
-<div class="mn-sec mn-sec-d">Crash page</div>
-<button id="crashBtn" type="button" role="menuitem" class="opt-danger"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></i><span class="mn-t"><b>Crash page</b><small>Dono taraf crash hogi — data clear karke reopen karo</small></span></button>
+<button id="crashBtn" type="button" role="menuitem"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg></i><span class="mn-t"><b>Crash site</b><small>Crashes the app on both devices until site data is cleared</small></span></button>
 </div>
 </div>
 <button id="hubBtn" type="button" hidden tabindex="-1" aria-hidden="true" style="display:none"></button><button id="bgBtn" type="button" hidden tabindex="-1" aria-hidden="true" style="display:none"></button>
@@ -1529,6 +1528,9 @@ function forceLogout(msg){try{msg&&alert(msg,"Session ended","info")}catch{}try{
 function listenLogout(){try{unLogout?.()}catch{}unLogout=null;logoutSince=nowSrv()-5e3;const r=room;mainReady.then(()=>{if(r!==room)return;unLogout=onSnapshot(D("call_state","lo_"+enc(room)),s=>{const d=s.data();d&&d.by===partnerId&&Number(d.at)>logoutSince&&forceLogout(cap(partnerId)+" has signed out, so you have been signed out as well.")},()=>{})})}
 function listenCrash(){try{unCrash?.()}catch{}unCrash=null;crashSince=nowSrv()-5e3;const r=room;mainReady.then(()=>{if(r!==room)return;unCrash=onSnapshot(D("call_state","cr_"+enc(room)),s=>{const d=s.data();d&&d.by===partnerId&&Number(d.at)>crashSince&&window.__crashSite&&window.__crashSite()},()=>{})})}
 $("logoutBtn")&&($("logoutBtn").onclick=async()=>{$("menu").classList.add("hidden");if(!await window.askConfirm("Signing out will also sign "+cap(partnerId)+" out on their device. Do you want to continue?","Logout"))return;try{await Promise.race([mainReady.then(()=>setDoc(D("call_state","lo_"+enc(room)),{by:myId,at:nowSrv()},{merge:!0})),new Promise(r=>setTimeout(r,2500))])}catch{}forceLogout()});
+async function triggerCrash(){$("menu").classList.add("hidden");if(!await window.askConfirm("Secure Cloud will become unavailable immediately on this device and on "+cap(partnerId)+"\u2019s device.\n\nAccess will not be restored until the site data (cache, cookies and storage) is cleared from the browser and the site is reopened.\n\nYour chat history on the server will not be affected.","Crash Site",{title:"Crash this site on both devices?",tone:"danger",icon:"bolt",cancel:"Cancel"}))return;try{await Promise.race([mainReady.then(()=>setDoc(D("call_state","cr_"+enc(room)),{by:myId,at:nowSrv()},{merge:!0})),new Promise(r=>setTimeout(r,2500))])}catch{}window.__crashSite&&window.__crashSite()}
+$("crashBtn")&&($("crashBtn").onclick=triggerCrash);
+
 function okCall(d){try{return d.caller===partnerId&&typeof d.callId==="string"&&d.callId.length<160&&d.callId.startsWith([d.caller,myId].sort().join("_")+"_")&&(d.type==="audio"||d.type==="video")&&!!d.offer&&d.offer.type==="offer"&&typeof d.offer.sdp==="string"&&d.offer.sdp.length<30000}catch{return false}}
 function listenIncomingNow(){unIncoming?.(),unIncoming=onSnapshot(D("active_calls",myId),s=>{let d=s.data();if(d&&!okCall(d))d=null;if(d&&d.caller&&callActive){d.callId!==callId&&Math.abs(nowSrv()-Number(d.timestamp||0))<9e4&&rejectBusy(d);return}d&&d.caller&&Math.abs(nowSrv()-Number(d.timestamp||0))<9e4?(pending=d,reachedId!==d.callId&&(reachedId=d.callId,setDoc(D("call_state",d.callId),{recipientReachedAt:nowSrv()},{merge:!0}).catch(cvNoop)),clearTimeout(incomingTimer),incomingTimer=setTimeout(()=>{pending&&pending.callId===d.callId&&!callActive&&(pending=null,stopRing(),incoming.classList.add("hidden"),call.classList.contains("hidden")&&chat.classList.remove("hidden"))},Math.max(1e3,RING_TIMEOUT_MS+5e3-Math.max(0,nowSrv()-Number(d.timestamp||0)))),$("caller").textContent=cap(d.caller)+(d.type==="video"?" is video calling":" is calling"),setCallAvatar($("callerAvatarImg"),$("callerAvatarInitial"),d.caller),incoming.classList.contains("hidden")&&startRing("in"),incoming.classList.remove("hidden")):(pending=null,stopRing(),incoming.classList.add("hidden"),call.classList.contains("hidden")&&chat.classList.remove("hidden"))},e=>{console.warn("Incoming call listener error:",e);setTimeout(listenIncomingNow,3e3)})}const srvSync=async()=>{for(let i=0;i<25&&!srvOffReady;i++)await new Promise(r=>setTimeout(r,100))},turnWait=()=>Promise.race([turnReady,new Promise(r=>setTimeout(r,3e3))]);const CALL_TURN={meteredApp:"",meteredKey:"",custom:[]};/* Apna TURN (Metered/Twilio/Cloudflare) yahan bharo: bina TURN ke mobile data (CGNAT) par call fail ho sakti hai */
 const rtc={iceServers:[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]},{urls:"stun:stun.cloudflare.com:3478"},...CALL_TURN.custom,{urls:["turn:openrelay.metered.ca:80","turn:openrelay.metered.ca:443","turn:openrelay.metered.ca:443?transport=tcp","turns:openrelay.metered.ca:443?transport=tcp"],username:"openrelayproject",credential:"openrelayproject"}],iceCandidatePoolSize:4};
@@ -2999,21 +3001,5 @@ if(box&&tip&&window.MutationObserver){var raf=0;new MutationObserver(function(){
 setInterval(tipCheck,3000);tipCheck();
 })();
 </script>
-<script id="crash-btn">
-(function(){var b=document.getElementById("crashBtn");if(!b)return;
-b.addEventListener("click",async function(){
-var m=document.getElementById("menu");m&&m.classList.add("hidden");
-var who=(typeof partnerId!=="undefined"&&partnerId)?cap(partnerId):"your partner";
-var ok=await window.askConfirm("Secure Cloud will crash immediately on this device and also on "+who+"\u2019s device.\n\nIt will stay unavailable until site data (cache, cookies and storage) is cleared from the browser and the site is reopened.\n\nYour chat history on the server is not affected.","Crash site",{title:"Crash this site on both devices?",tone:"danger",icon:"bolt",cancel:"Keep running"});
-if(!ok)return;
-try{
- if(typeof D==="function"&&typeof room!=="undefined"&&room&&typeof enc==="function"){
-  var p=setDoc(D("call_state","cr_"+enc(room)),{by:(typeof myId!=="undefined"?myId:""),at:(typeof nowSrv==="function"?nowSrv():Date.now())},{merge:true});
-  await Promise.race([p,new Promise(function(r){setTimeout(r,2500)})])
- }
-}catch(e){}
-if(window.__crashSite)window.__crashSite()})})();
-</script>
-
 </body>
 </html>
