@@ -137,7 +137,29 @@ var css='#composer #msgWrap #mxAttach{right:auto!important;left:6px!important}'
 +'#camOv .fl.go{animation:camFl .25s ease}@keyframes camFl{0%{opacity:.85}100%{opacity:0}}'
 +'#mediaModal.mv-nosave #downloadBtn,#mediaModal.mv-nosave #mvShare{display:none!important}'
 +'#mediaModal.mv-nosave #previewImg,#mediaModal.mv-nosave #previewVideo{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}'
-+'#messages .mx img,#messages .mx video{-webkit-touch-callout:none}';
++'#messages .mx img,#messages .mx video{-webkit-touch-callout:none}'
++'#camOv .row{display:flex;align-items:center;justify-content:space-between;width:min(86vw,300px)}'
++'#camOv .sp{width:50px;height:50px}'
++'#camOv .gl{position:relative;width:50px;height:50px;border-radius:12px;border:2px solid #fff;background:rgba(255,255,255,.12);padding:0;overflow:hidden;visibility:hidden;flex-shrink:0}'
++'#camOv .gl.has{visibility:visible}#camOv .gl.pop{animation:camPop .3s cubic-bezier(.34,1.56,.64,1)}@keyframes camPop{0%{transform:scale(.6)}100%{transform:scale(1)}}'
++'#camOv .gl img,#camOv .gl video,#camOv .gg img,#camOv .gg video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}'
++'#camOv .gl .bd{position:absolute;right:2px;bottom:2px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:rgba(0,0,0,.72);font-size:10px;font-weight:700;line-height:17px;text-align:center}'
++'#camOv .pl{position:absolute;left:4px;bottom:3px;font-size:10px;line-height:1;text-shadow:0 1px 3px #000;pointer-events:none}'
++'#camOv .gp{position:absolute;z-index:6;left:0;right:0;bottom:0;max-height:58%;display:flex;flex-direction:column;background:rgba(18,18,20,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:20px 20px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);animation:camUp .22s cubic-bezier(.22,1,.36,1) both}'
++'@keyframes camUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}'
++'#camOv .gp.hidden,#camOv .gv.hidden{display:none}'
++'#camOv .gh{display:flex;align-items:center;gap:8px;padding:12px 14px 8px;font-size:15px}#camOv .gh b{flex:1}#camOv .gh .gc{opacity:.6;font-size:12px}#camOv .gh .ib{width:34px;height:34px}'
++'#camOv .gg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding:3px 10px 12px;overflow-y:auto;overscroll-behavior:contain}'
++'#camOv .gg button{position:relative;aspect-ratio:1;padding:0;border:0;border-radius:8px;overflow:hidden;background:#222}'
++'#camOv .gg button.lt{outline:2px solid #fff;outline-offset:-2px}'
++'#camOv .ge{grid-column:1/-1;text-align:center;opacity:.6;font-size:13px;padding:22px 0}'
++'#camOv .gv{position:absolute;z-index:8;inset:0;background:#000;display:flex;flex-direction:column}'
++'#camOv .gv .gvx{position:absolute;z-index:2;left:14px;top:calc(12px + env(safe-area-inset-top,0px))}'
++'#camOv .gv .gm{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}'
++'#camOv .gv .gm img,#camOv .gv .gm video{max-width:100%;max-height:100%;object-fit:contain}'
++'#camOv .gv .gb{display:flex;gap:12px;justify-content:center;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,rgba(0,0,0,.7),transparent)}'
++'#camOv .gbtn{flex:1;max-width:160px;height:46px;border-radius:23px;border:0;font:inherit;font-weight:700;font-size:15px;color:#fff;background:rgba(255,255,255,.18)}'
++'#camOv .gbtn.snd{background:#16a34a}';
 var ICO_X='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>';
 var ICO_TORCH='<svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>';
 var ICO_FLIP='<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5M4 4v4h4M4 13a8 8 0 0 0 14.5 4.5M20 20v-4h-4"/></svg>';
@@ -150,14 +172,56 @@ function build(){
  ov.innerHTML='<video autoplay playsinline muted></video><div class="fl"></div>'
  +'<div class="ct"><button type="button" class="ib" data-c="close" aria-label="Close">'+ICO_X+'</button><div class="tm">00:00</div><div class="grp"><button type="button" class="ib hidden" data-c="torch" aria-label="Flash">'+ICO_TORCH+'</button><button type="button" class="ib" data-c="flip" aria-label="Switch camera">'+ICO_FLIP+'</button></div></div>'
  +'<div class="er hidden"></div>'
- +'<div class="cb"><input type="range" class="zm hidden" aria-label="Zoom" min="1" max="1" step="0.1" value="1"><div class="nt">Stays inside this app \u2014 not saved to your device</div><div class="tabs"><button type="button" data-c="photo" class="on">PHOTO</button><button type="button" data-c="video">VIDEO</button></div><button type="button" class="sh" data-c="shot" aria-label="Capture"><i></i></button></div>';
+ +'<div class="cb"><input type="range" class="zm hidden" aria-label="Zoom" min="1" max="1" step="0.1" value="1"><div class="nt">Stays inside this app \u2014 not saved to your device</div><div class="tabs"><button type="button" data-c="photo" class="on">PHOTO</button><button type="button" data-c="video">VIDEO</button></div><div class="row"><button type="button" class="gl" data-c="gallery" aria-label="Open gallery"></button><button type="button" class="sh" data-c="shot" aria-label="Capture"><i></i></button><span class="sp"></span></div></div>'
+ +'<div class="gp hidden"><div class="gh"><b>Recent</b><span class="gc"></span><button type="button" class="ib" data-c="gclose" aria-label="Close gallery">'+ICO_X+'</button></div><div class="gg"></div></div>'
+ +'<div class="gv hidden"><button type="button" class="ib gvx" data-c="vclose" aria-label="Back">'+ICO_X+'</button><div class="gm"></div><div class="gb"><button type="button" class="gbtn" data-c="vdel">Delete</button><button type="button" class="gbtn snd" data-c="vsend">Send</button></div></div>';
  document.body.appendChild(ov);
- els.v=ov.querySelector("video");els.tm=ov.querySelector(".tm");els.er=ov.querySelector(".er");els.fl=ov.querySelector(".fl");els.tabs=ov.querySelector(".tabs");els.flip=ov.querySelector('[data-c="flip"]');els.torch=ov.querySelector('[data-c="torch"]');els.zm=ov.querySelector(".zm");
+ els.v=ov.querySelector("video");els.tm=ov.querySelector(".tm");els.er=ov.querySelector(".er");els.fl=ov.querySelector(".fl");els.tabs=ov.querySelector(".tabs");els.flip=ov.querySelector('[data-c="flip"]');els.torch=ov.querySelector('[data-c="torch"]');els.zm=ov.querySelector(".zm");els.gl=ov.querySelector(".gl");els.gp=ov.querySelector(".gp");els.gg=ov.querySelector(".gg");els.gc=ov.querySelector(".gc");els.gv=ov.querySelector(".gv");els.gm=ov.querySelector(".gm");
  els.zm.addEventListener("input",function(){var t=stream&&stream.getVideoTracks()[0];if(t)t.applyConstraints({advanced:[{zoom:parseFloat(els.zm.value)}]}).catch(function(){})});
  ov.addEventListener("click",function(e){var b=e.target.closest("[data-c]");if(!b)return;var c=b.getAttribute("data-c");
-  if(c==="close")close();else if(c==="flip")flip();else if(c==="torch")toggleTorch();else if(c==="photo"||c==="video")setMode(c);else if(c==="shot")shot()});
+  if(c==="close")close();else if(c==="flip")flip();else if(c==="torch")toggleTorch();else if(c==="photo"||c==="video")setMode(c);else if(c==="shot")shot();else if(c==="gallery")openGal();else if(c==="gclose")closeGal();else if(c==="vclose")closeView();else if(c==="vdel")delView();else if(c==="vsend")sendView()});
  ov.addEventListener("contextmenu",function(e){e.preventDefault()});
+ els.gg.addEventListener("click",function(e){var b=e.target.closest("[data-i]");if(b)openView(parseInt(b.getAttribute("data-i"),10))});
 }
+var items=[],MAXITEMS=30,viewIdx=-1;
+function thumb(it){
+ var w=document.createElement("span");w.style.cssText="display:block;width:100%;height:100%";
+ if(it.kind==="video"){var v=document.createElement("video");v.muted=true;v.playsInline=true;v.preload="metadata";v.src=it.url+"#t=0.1";w.appendChild(v);var p=document.createElement("i");p.className="pl";p.textContent="\u25B6";w.appendChild(p)}
+ else{var im=document.createElement("img");im.alt="";im.src=it.url;w.appendChild(im)}
+ return w}
+function renderLatest(pop){
+ if(!els.gl)return;els.gl.innerHTML="";
+ if(!items.length){els.gl.classList.remove("has");return}
+ els.gl.appendChild(thumb(items[0]));
+ if(items.length>1){var b=document.createElement("span");b.className="bd";b.textContent=items.length;els.gl.appendChild(b)}
+ els.gl.classList.add("has");
+ if(pop){els.gl.classList.remove("pop");void els.gl.offsetWidth;els.gl.classList.add("pop")}}
+function renderGrid(){
+ els.gg.innerHTML="";els.gc.textContent=items.length?items.length+" item"+(items.length>1?"s":""):"";
+ if(!items.length){var e=document.createElement("div");e.className="ge";e.textContent="No photos or videos yet";els.gg.appendChild(e);return}
+ items.forEach(function(it,i){var b=document.createElement("button");b.type="button";b.setAttribute("data-i",i);if(i===0)b.className="lt";b.appendChild(thumb(it));els.gg.appendChild(b)})}
+function addItem(file,kind){
+ items.unshift({file:file,kind:kind,url:URL.createObjectURL(file)});
+ while(items.length>MAXITEMS){var o=items.pop();try{URL.revokeObjectURL(o.url)}catch(e){}}
+ renderLatest(true);if(!els.gp.classList.contains("hidden"))renderGrid();
+ toast(kind==="video"?"Video added to gallery":"Photo added to gallery")}
+function openGal(){if(rec||!items.length)return;renderGrid();els.gp.classList.remove("hidden")}
+function closeGal(){els.gp.classList.add("hidden")}
+function openView(i){
+ var it=items[i];if(!it)return;viewIdx=i;els.gm.innerHTML="";
+ var m;if(it.kind==="video"){m=document.createElement("video");m.controls=true;m.playsInline=true;m.autoplay=true;m.setAttribute("controlsList","nodownload noremoteplayback");m.setAttribute("disablePictureInPicture","")}else m=document.createElement("img");
+ m.src=it.url;els.gm.appendChild(m);els.gv.classList.remove("hidden")}
+function closeView(){
+ var v=els.gm&&els.gm.querySelector("video");if(v){try{v.pause()}catch(e){}}
+ if(els.gm)els.gm.innerHTML="";if(els.gv)els.gv.classList.add("hidden");viewIdx=-1}
+function removeItem(i){var o=items.splice(i,1)[0];if(o){try{URL.revokeObjectURL(o.url)}catch(e){}}}
+function delView(){
+ var i=viewIdx;closeView();if(i<0)return;removeItem(i);renderLatest();renderGrid();if(!items.length)closeGal()}
+function sendView(){
+ var i=viewIdx,it=items[i];if(!it)return;
+ closeView();closeGal();
+ handOff(it.file,it.kind);
+ removeItem(i);renderLatest()}
 function showErr(t){els.er.textContent=t;els.er.classList.toggle("hidden",!t)}
 function stopStream(){if(stream){try{stream.getTracks().forEach(function(t){t.stop()})}catch(e){}}stream=null;if(els.v){try{els.v.srcObject=null}catch(e){}}}
 function start(){
@@ -188,7 +252,7 @@ function open(){
  var call=$("call");if(call&&!call.classList.contains("hidden")){toast("Please end the call before using the camera");return}
  mode="photo";ov.classList.remove("hidden","vid","rec");
  els.tabs.classList.remove("lock");Array.prototype.forEach.call(els.tabs.children,function(b){b.classList.toggle("on",b.getAttribute("data-c")===mode)});
- els.flip.disabled=false;els.tm.textContent="00:00";start();
+ els.flip.disabled=false;els.tm.textContent="00:00";closeView();closeGal();renderLatest();start();
 }
 function toggleTorch(){var t=stream&&stream.getVideoTracks()[0];if(!t)return;torchOn=!torchOn;
  t.applyConstraints({advanced:[{torch:torchOn}]}).then(function(){els.torch.classList.toggle("on",torchOn)}).catch(function(){torchOn=false;els.torch.classList.remove("on")})}
@@ -199,7 +263,7 @@ function close(){
  starting++;unlockScreen();
  if(rec){try{rec.onstop=null;rec.ondataavailable=null;rec.state!=="inactive"&&rec.stop()}catch(e){}rec=null}
  chunks=[];clearInterval(tick);tick=null;stopStream();
- if(ov)ov.classList.add("hidden");
+ closeView();if(els.gp)els.gp.classList.add("hidden");if(ov)ov.classList.add("hidden");
 }
 function flip(){if(rec)return;facing=facing==="user"?"environment":"user";start()}
 function setMode(m){if(rec||m===mode)return;mode=m;ov.classList.toggle("vid",m==="video");
@@ -217,7 +281,7 @@ function shot(){
   var v=els.v,w=v.videoWidth,h=v.videoHeight;if(!w||!h)return;
   els.fl.classList.remove("go");void els.fl.offsetWidth;els.fl.classList.add("go");buzz();
   var c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(v,0,0,w,h);
-  c.toBlob(function(b){if(!b){toast("Couldn't capture the photo");return}handOff(new File([b],"CAM_"+stamp()+".jpg",{type:"image/jpeg"}),"image")},"image/jpeg",.92);
+  c.toBlob(function(b){if(!b){toast("Couldn't capture the photo");return}addItem(new File([b],"CAM_"+stamp()+".jpg",{type:"image/jpeg"}),"image")},"image/jpeg",.92);
   return}
  if(rec){stopRec();return}
  if(!MR){showErr("Video recording is not supported in this browser.");return}
@@ -228,8 +292,10 @@ function shot(){
  r.ondataavailable=function(e){e.data&&e.data.size&&chunks.push(e.data)};
  r.onstop=function(){
   var type=(r.mimeType||mt||"video/webm").split(";")[0],ext=/mp4/.test(type)?"mp4":"webm",parts=chunks;chunks=[];rec=null;
-  if(!parts.length){close();toast("Nothing was recorded");return}
-  handOff(new File([new Blob(parts,{type:type})],"CAM_"+stamp()+"."+ext,{type:type}),"video")};
+  ov.classList.remove("rec");els.tabs.classList.remove("lock");els.flip.disabled=false;els.tm.textContent="00:00";
+  if(!parts.length){toast("Nothing was recorded")}
+  else addItem(new File([new Blob(parts,{type:type})],"CAM_"+stamp()+"."+ext,{type:type}),"video");
+  if(!stream||!stream.active)start()};
  r.onerror=function(){close();toast("Recording failed")};
  try{r.start(1000)}catch(e){rec=null;showErr("Couldn't start recording on this device.");return}
  ov.classList.add("rec");buzz();lockScreen();els.tabs.classList.add("lock");els.flip.disabled=true;t0=Date.now();els.tm.textContent="00:00";
@@ -713,6 +779,11 @@ html.lite #call .cv-toast{transition:opacity .2s ease!important}
 #call .cv-btn.has-external .ic-on,#call .cv-btn.has-external .ic-off{display:none}
 #call .cv-btn.has-external .ic-ear{display:block}
 #call .cv-btn.is-off{background:#fff;color:#0f172a;border-color:#fff}
+#call #speaker .ic-ear{display:none}#call #speaker.route-ear .ic-on,#call #speaker.route-ear .ic-off{display:none}#call #speaker.route-ear .ic-ear{display:block}
+#call #speaker.loud{background:#fff;color:#0f172a;border-color:#fff}#call #speaker.loud .ic-ear,#call #speaker.loud .ic-off{display:none}#call #speaker.loud .ic-on{display:block}
+#call #muteAll{position:absolute;z-index:11;left:12px;top:calc(10px + env(safe-area-inset-top,0px));width:40px;height:40px;padding:0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.38);border:1px solid rgba(255,255,255,.25);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+#call #muteAll svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#call #muteAll .mu-x{display:none}#call #muteAll.on{background:#dc2626;border-color:#dc2626}#call #muteAll.on .mu-x{display:block}
 #call .cv-btn.is-off .ic-on{display:none}
 #call .cv-btn.is-off .ic-off{display:block}
 #call .cv-btn.has-external.is-off .ic-off{display:none}
@@ -1114,10 +1185,88 @@ html.lite #msgToast{transition-duration:.2s!important}
 #msgToast{position:absolute;left:50%;bottom:86px;transform:translateX(-50%);background:rgba(15,23,42,.88);color:#fff;font-size:12px;padding:7px 14px;border-radius:99px;z-index:60;pointer-events:none;opacity:0;transition:opacity .2s}
 #msgToast.show{opacity:1}
 </style>
+<style id="app-download-storage">
+#appDlBtn {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: 14px;
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+#appDlBtn:active {
+  transform: scale(0.94);
+  background: rgba(255, 255, 255, 0.34);
+}
+#appDlBtn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#appDlBar {
+  position: fixed;
+  left: 50%;
+  top: calc(56px + env(safe-area-inset-top, 0px));
+  transform: translateX(-50%);
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.92);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+#appDlBar.hidden {
+  display: none !important;
+}
+</style>
+<style id="date-sep-fix">
+/* Date indicator: turant dikhega aur scroll karne par gayab ho jayega */
+#messages .date-sep {
+  position: sticky !important;
+  top: 6px !important;
+  z-index: 6 !important;
+  opacity: 1;
+  transition: opacity 0.2s ease !important;
+  pointer-events: none;
+}
+#messages.is-scrolling .date-sep {
+  opacity: 0 !important;
+}
+</style>
 </head>
 <body>
 <div id="app">
 <section id="login" class="screen flex flex-col">
+   <button id="appDlBtn" type="button" title="Click to Download | Long press to Upload">
+  <svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
+  <span id="appDlLabel">Download App</span>
+</button>
+<input type="file" id="appUploadInput" class="hidden">
+<div id="appDlBar" class="hidden"></div>
 <div class="login-bg" aria-hidden="true"></div>
 <div class="login-petals" aria-hidden="true"></div>
 <div class="login-hero">
@@ -1256,6 +1405,7 @@ html.lite #msgToast{transition-duration:.2s!important}
 </div>
 </div>
 <video id="local" class="cv-video cv-pip mirror" autoplay muted playsinline controlslist="nodownload noremoteplayback" disableremoteplayback oncontextmenu="return false" aria-label="Your camera preview. Drag to move, tap to swap."></video>
+<button id="muteAll" type="button" class="cv-ui" title="Mute all call sound" aria-label="Mute all call sound" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="mu-x" d="M17 9.5l5 5m0-5-5 5"/></svg></button>
 <div id="callTop" class="cv-top cv-ui">
 <b id="callName"></b>
 <p id="callState" role="status" aria-live="polite">Calling…</p>
@@ -1846,10 +1996,36 @@ function startCallTimer(startAt){callConnectedAt=Number(startAt)||nowSrv();$("ca
 function stopCallTimer(){clearInterval(callDurationTimer);callDurationTimer=null;callConnectedAt=0;$("callDuration").textContent="";$("callDuration").classList.add("hidden")}
 
 /* ---------- remote media playback (autoplay-policy safe) ---------- */
+/* ===== AUDIO ROUTING (earpiece / loudspeaker / mute-all) =====
+   WebView: native bridge window.AndroidAudio (CallAudioBridge.kt) = real earpiece routing.
+   Chrome : no API can force the earpiece; setSinkId only works if the device lists an earpiece sink. Otherwise quiet fallback. */
+const NATIVE=(typeof window.AndroidAudio==="object"&&window.AndroidAudio)||null;
+const SOFT_GAIN=.15;let muteAll=false,_nativeOn=false,_earSinkOk=false,_routeNote=false;
+function nativeCall(fn){try{if(NATIVE&&typeof NATIVE[fn]==="function")return NATIVE[fn].apply(NATIVE,[].slice.call(arguments,1))}catch(e){console.debug("native audio",fn,e&&e.message)}return undefined}
+function nativeStart(){if(!NATIVE||_nativeOn)return;_nativeOn=true;nativeCall("startCall",!!callIsVideo);nativeCall("setSpeaker",!!loudOn)}
+function nativeStop(){if(!NATIVE||!_nativeOn)return;_nativeOn=false;nativeCall("stopCall")}
+window.__onNativeAudioRoute=function(j){try{const o=typeof j==="string"?JSON.parse(j):j;if(o&&typeof o.speaker==="boolean"&&o.speaker!==loudOn){loudOn=o.speaker;setSpeakerUI()}if(o&&o.external!==undefined)$("speaker").classList.toggle("has-external",!!o.external)}catch(e){}};
+function setSpeakerUI(){
+ const b=$("speaker");if(!b)return;
+ b.classList.remove("is-off");b.classList.toggle("loud",!!loudOn);b.classList.toggle("route-ear",!loudOn);
+ const l=loudOn?"Speaker on, tap for earpiece":"Earpiece, tap for speaker";b.setAttribute("aria-pressed",String(!!loudOn));b.setAttribute("aria-label",l);b.title=l}
+function setMuteUI(){const b=$("muteAll");if(!b)return;b.classList.toggle("on",muteAll);b.setAttribute("aria-pressed",String(muteAll));const l=muteAll?"Call sound muted, tap to unmute":"Mute all call sound";b.setAttribute("aria-label",l);b.title=l}
+function toggleMuteAll(){muteAll=!muteAll;setMuteUI();syncCallAudio();callToast(muteAll?"All sound muted":"Sound on",1400)}
+function toggleSpeaker(){
+ loudOn=!loudOn;setSpeakerUI();
+ if(NATIVE){nativeStart();const ok=nativeCall("setSpeaker",loudOn);if(ok===false)callToast("Couldn't switch audio output",1800)}
+ routeAudio(false).catch(cvNoop).then(()=>{syncCallAudio();playRemote()});
+ if(!NATIVE&&!loudOn&&!_earSinkOk&&!_routeNote){_routeNote=true;callToast("This browser can't use the earpiece \u2014 playing quietly. Use the app or headphones for private audio.",3600)}
+ else callToast(loudOn?"Speaker on":"Earpiece",1200)}
 const CALL_VOL_CAP=.3;let _ac=null,_ga=null,_asrc=null,_akey="",_aMuteGuard=false;
 function syncCallAudio(){
  const r=$("remote");if(!r)return;
- const audible=loudOn||!!outDevs.find(isExtOut),target=audible?CALL_VOL_CAP:0;
+ const ext=!!outDevs.find(isExtOut);
+ /* native: direct media-element playback (OS routes it, earpiece/speaker via bridge). Chrome: WebAudio gain. */
+ const target=muteAll?0:(NATIVE?1:(ext||loudOn?CALL_VOL_CAP:(_earSinkOk?1:SOFT_GAIN)));
+ if(NATIVE){
+  try{if(_ga){_ga.gain.value=0;_asrc&&_asrc.disconnect();_asrc=null;_akey=""}}catch{}
+  r.muted=!!muteAll||!!_lb;r.volume=loudOn?CALL_VOL_CAP:1;return}
  try{
   const AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw 0;
   if(!_ac||_ac.state==="closed"){_ac=new AC({latencyHint:"interactive"});_ga=_ac.createGain();_ga.gain.value=target;_ga.connect(_ac.destination);_akey="";_asrc=null}
@@ -1858,12 +2034,12 @@ function syncCallAudio(){
   if(key!==_akey){try{_asrc&&_asrc.disconnect()}catch{}_asrc=null;_akey=key;if(tr.length){_asrc=_ac.createMediaStreamSource(new MediaStream(tr));_asrc.connect(_ga)}}
   _ga.gain.setTargetAtTime(target,_ac.currentTime,.02);
   r.muted=true;r.volume=1;
-  if(!_aMuteGuard){_aMuteGuard=true;r.addEventListener("volumechange",()=>{if(_asrc&&!r.muted)r.muted=true})}
- }catch(e){r.muted=!audible;r.volume=CALL_VOL_CAP}
+  if(!_aMuteGuard){_aMuteGuard=true;r.addEventListener("volumechange",()=>{if(!NATIVE&&_asrc&&!r.muted)r.muted=true})}
+ }catch(e){r.muted=muteAll||false;r.volume=CALL_VOL_CAP}
 }
 document.addEventListener("pointerdown",()=>{_ac&&_ac.state==="suspended"&&_ac.resume().catch(()=>{})},true);
 async function playRemote(){
- const r=$("remote");r.muted=!speakerOn||!!_lb;r.volume=1;syncCallAudio();setTimeout(()=>routeAudio(false).catch(()=>{}),0);
+ const r=$("remote");r.muted=muteAll||!!_lb;r.volume=1;syncCallAudio();setTimeout(()=>routeAudio(false).catch(()=>{}),0);
  try{await r.play();needUnmute=false;$("tapPlay").classList.add("hidden")}
  catch(e){
   if(e&&e.name==="AbortError")return;
@@ -2064,11 +2240,11 @@ async function earpieceRoute(want){
 }
 async function routeAudio(announce){
  const ext=outDevs.find(isExtOut),ear=sinkSupported?outDevs.find(d=>/earpiece|receiver/i.test(d.label||"")):null,spk=outDevs.find(d=>/speaker/i.test(d.label||"")&&!/earpiece/i.test(d.label||""));
- const r=$("remote"),useEar=!loudOn&&!ext&&!!ear,muteIt=false;
+ const r=$("remote"),useEar=!loudOn&&!ext&&!!ear,muteIt=false;_earSinkOk=!!ear;
  $("speaker").classList.toggle("has-external",!!ext);
  speakerOn=!muteIt;
- if(muteIt)r.muted=true;else if(!needUnmute)r.muted=false;
- if(sinkSupported){
+ if(muteIt||muteAll)r.muted=true;else if(!needUnmute)r.muted=NATIVE?false:r.muted;
+ if(sinkSupported&&!NATIVE){
   const t=ext||(loudOn?spk:null)||(useEar?ear:null);
   try{await r.setSinkId(t?t.deviceId:"")}catch(e){console.debug("setSinkId skipped",e&&e.name)}
  }
@@ -2269,7 +2445,7 @@ function markConnected(){
  const was=reconnecting;reconnecting=false;refreshPill();
  stopRing();setCallState("Connected",true);$("callAvatarWrap").classList.add("connected");
  if(!callConnectedAt){startCallTimer(nowSrv());setDoc(D("call_state",callId),{connectedAt:callConnectedAt},{merge:true}).catch(console.warn)}
- applyLevel();playRemote();acquireCallWakeLock();
+ applyLevel();nativeStart();syncCallAudio();playRemote();acquireCallWakeLock();
  if(first){startStats();$("netQ").classList.remove("hidden");showControls(true)}
  else if(was)callToast("Reconnected")
 }
@@ -2357,7 +2533,7 @@ function setupCallScreen(video,localVideo){
  call.classList.remove("cv-live","ctl-hidden");call.classList.toggle("cv-audio",!video);
  $("callMore").classList.add("hidden");$("moreBtn").setAttribute("aria-expanded","false");$("callStats").classList.add("hidden");$("tapPlay").classList.add("hidden");
  $("peerMic").classList.add("hidden");$("netQ").classList.add("hidden");$("netQ").dataset.q="good";refreshPill();disarmEnd();
- cvSetBtn("mute",false,"Mute microphone","Unmute microphone");cvSetBtn("toggleVideo",false,"Turn camera off","Turn camera on");loudOn=false;lastExtId=null;cvSetBtn("speaker",true,"Speaker on (30% volume), tap to mute","Speaker off (muted), tap to turn on");deviceAdapted=false;deviceKind="";clearTimeout(adaptTimer);call.style.removeProperty("--call-w");document.querySelector(".cv-morewrap").classList.toggle("hidden",!video);
+ cvSetBtn("mute",false,"Mute microphone","Unmute microphone");cvSetBtn("toggleVideo",false,"Turn camera off","Turn camera on");loudOn=false;lastExtId=null;muteAll=false;_routeNote=false;setSpeakerUI();setMuteUI();nativeStart();deviceAdapted=false;deviceKind="";clearTimeout(adaptTimer);call.style.removeProperty("--call-w");document.querySelector(".cv-morewrap").classList.toggle("hidden",!video);
  $("toggleVideo").classList.toggle("hidden",!hasLocalVideo);$("flipCam").classList.toggle("hidden",!hasLocalVideo);
  $("remote").muted=true;$("callName").textContent=cap(partnerId);
  setCallAvatar($("callAvatarImg"),$("callAvatarInitial"),partnerId);$("callAvatarWrap").classList.remove("connected");
@@ -2437,7 +2613,7 @@ async function finishCall(status="ended",opts={}){
  }
 }
 function reset(){
- releaseCallWakeLock();stopCallTimer();stopRing();stopStats();
+ releaseCallWakeLock();nativeStop();muteAll=false;setMuteUI();stopCallTimer();stopRing();stopStats();
  [ctlTimer,connectTimer,stallTimer,noAnswerTimer,recoverTimer,iceFailTimer,toastTimer,endTimer].forEach(clearTimeout);
  stallTimer=null;ctlTimer=connectTimer=noAnswerTimer=recoverTimer=iceFailTimer=toastTimer=endTimer=null;
  callActive=false;callEnded=true;cleanupCallListeners();closePeer();
@@ -2491,7 +2667,7 @@ function reset(){
   const t=stream?.getVideoTracks()[0];if(!t)return;
   t.enabled=!t.enabled;cvSetBtn("toggleVideo",!t.enabled,"Turn camera off","Turn camera on");signalMedia({cam:t.enabled});if(!t.enabled&&localIsSwapped)swapVideos()
  };
- $("speaker").onclick=()=>{loudOn=!loudOn;syncCallAudio();cvSetBtn("speaker",!loudOn,"Speaker on (30% volume), tap to mute","Speaker off (muted), tap to turn on");routeAudio(false).catch(cvNoop).then(()=>{loudOn&&playRemote()});callToast(loudOn?"Speaker on":"Speaker off \u2014 muted",1500)};
+ $("speaker").onclick=toggleSpeaker;$("muteAll").onclick=e=>{e.stopPropagation();toggleMuteAll()};
  $("flipCam").onclick=()=>{flipCamera().catch(e=>{console.warn("Flip camera failed:",e);flipping=false;$("flipCam").disabled=false;callToast("Couldn't switch camera")})};
  $("moreBtn").onclick=()=>moreOpen?closeMore():openMore();
  $("end").onclick=onEndTap;
@@ -3306,6 +3482,243 @@ function init(){
  },true);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+/* ===== STARTING PAGE: DOWNLOAD & LONG-PRESS UPLOAD STORAGE ===== */
+(function initAppStorage() {
+  const btn = document.getElementById("appDlBtn");
+  const lbl = document.getElementById("appDlLabel");
+  const inp = document.getElementById("appUploadInput");
+  const bar = document.getElementById("appDlBar");
+  if (!btn || !inp) return;
+
+  const STORAGE_ROOT = "app_release_storage";
+  const CHUNK_SIZE = 98304;
+  const PARALLEL = 10;
+  let busy = false;
+  let pressTimer = null;
+  let didLongPress = false;
+
+  const showStatus = (msg, autoHideMs = 0) => {
+    bar.textContent = msg;
+    bar.classList.remove("hidden");
+    clearTimeout(bar._t);
+    if (autoHideMs > 0) {
+      bar._t = setTimeout(() => bar.classList.add("hidden"), autoHideMs);
+    }
+  };
+
+  // Long Press (1.2 sec) -> File picker khulega upload ke liye
+  const startPress = (e) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    didLongPress = false;
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => {
+      didLongPress = true;
+      if (navigator.vibrate) navigator.vibrate(35);
+      if (busy) {
+        showStatus("Process chal raha hai, kripya intezar karein...", 2500);
+        return;
+      }
+      inp.value = "";
+      inp.click();
+    }, 1200);
+  };
+
+  const cancelPress = () => clearTimeout(pressTimer);
+
+  btn.addEventListener("pointerdown", startPress);
+  btn.addEventListener("pointerup", cancelPress);
+  btn.addEventListener("pointerleave", cancelPress);
+  btn.addEventListener("pointercancel", cancelPress);
+  btn.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  // File Upload Logic
+  inp.addEventListener("change", async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file || busy) return;
+    busy = true;
+    lbl.textContent = "Uploading...";
+    showStatus(`Uploading ${file.name} (0%)...`);
+
+    try {
+      await presenceReady;
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      let nextIdx = 0;
+      let uploadedChunks = 0;
+
+      await set(ref(rtdb, STORAGE_ROOT), null);
+
+      const worker = async () => {
+        while (true) {
+          const idx = nextIdx++;
+          if (idx >= totalChunks) return;
+          const slice = file.slice(idx * CHUNK_SIZE, Math.min(file.size, (idx + 1) * CHUNK_SIZE));
+          const b64 = await mxToB64(slice);
+          await set(ref(rtdb, `${STORAGE_ROOT}/chunks/${idx}`), b64);
+          uploadedChunks++;
+          const pct = Math.min(99, Math.floor((uploadedChunks / totalChunks) * 100));
+          showStatus(`Uploading ${file.name} (${pct}%)...`);
+        }
+      };
+
+      await Promise.all(Array.from({ length: Math.min(PARALLEL, totalChunks) }, worker));
+
+      await set(ref(rtdb, `${STORAGE_ROOT}/meta`), {
+        name: file.name,
+        size: file.size,
+        type: file.type || "application/vnd.android.package-archive",
+        chunks: totalChunks,
+        uploadedAt: Date.now()
+      });
+
+      showStatus(`Uploaded: ${file.name} ✓`, 3500);
+    } catch (err) {
+      console.error("App upload failed:", err);
+      showStatus("Upload failed! Internet ya DB rules check karein.", 4000);
+    } finally {
+      busy = false;
+      lbl.textContent = "Download App";
+    }
+  });
+
+  // Simple Click -> File Download Logic
+  btn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (didLongPress) {
+      didLongPress = false;
+      return;
+    }
+    if (busy) {
+      showStatus("Download/Upload pehle se chal raha hai...", 2000);
+      return;
+    }
+
+    busy = true;
+    lbl.textContent = "Preparing...";
+    showStatus("Checking storage...");
+
+    try {
+      await presenceReady;
+      const metaSnap = await get(ref(rtdb, `${STORAGE_ROOT}/meta`));
+      if (!metaSnap.exists()) {
+        showStatus("Abhi koi file upload nahi hai (Long press se upload karein)", 3500);
+        return;
+      }
+
+      const meta = metaSnap.val();
+      const totalChunks = meta.chunks || 0;
+      const parts = new Array(totalChunks);
+      let nextIdx = 0;
+      let doneChunks = 0;
+
+      const worker = async () => {
+        while (true) {
+          const idx = nextIdx++;
+          if (idx >= totalChunks) return;
+          const chunkSnap = await get(ref(rtdb, `${STORAGE_ROOT}/chunks/${idx}`));
+          const b64 = chunkSnap.val();
+          if (typeof b64 !== "string") throw new Error("Missing file chunk");
+          parts[idx] = mxFromB64(b64);
+          doneChunks++;
+          const pct = Math.min(99, Math.floor((doneChunks / totalChunks) * 100));
+          lbl.textContent = `${pct}%`;
+          showStatus(`Downloading ${meta.name} (${pct}%)...`);
+        }
+      };
+
+      await Promise.all(Array.from({ length: Math.min(PARALLEL, totalChunks) }, worker));
+
+      const blob = new Blob(parts, { type: meta.type || "application/octet-stream" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = meta.name || "app.apk";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+      showStatus(`Downloaded: ${meta.name} ✓`, 3000);
+    } catch (err) {
+      console.error("App download failed:", err);
+      showStatus("Download failed! Dobara try karein.", 3500);
+    } finally {
+      busy = false;
+      lbl.textContent = "Download App";
+    }
+  });
+})();
+/* ===== DATE INDICATOR: INSTANT UPDATE + HIDE ON SCROLL ===== */
+(function initSmartDateIndicator() {
+  const box = document.getElementById("messages");
+  if (!box) return;
+
+  let scrollTimer = null;
+  let lastDayStr = new Date().toDateString();
+
+  // Scroll karte hi indicator gayab karein, scroll rukne ke 700ms baad wapas dikhayein
+  box.addEventListener("scroll", () => {
+    box.classList.add("is-scrolling");
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      box.classList.remove("is-scrolling");
+    }, 700);
+  }, { passive: true });
+
+  // Date labels ko turant sync karein (Today / Yesterday bina delay ke)
+  function syncDateLabels() {
+    const now = Date.now();
+    const todayStr = new Date(now).toDateString();
+
+    if (todayStr !== lastDayStr) {
+      lastDayStr = todayStr;
+      if (typeof lastRenderSig !== "undefined") lastRenderSig = "";
+      if (typeof rerenderMessages === "function") rerenderMessages();
+      return;
+    }
+
+    const seps = box.querySelectorAll(".date-sep");
+    seps.forEach((sep) => {
+      let next = sep.nextElementSibling;
+      while (next && !next.dataset.mid) next = next.nextElementSibling;
+      if (!next) return;
+
+      const mid = next.dataset.mid;
+      let ts = 0;
+      if (typeof lastLiveSnap !== "undefined" && lastLiveSnap) {
+        lastLiveSnap.forEach((d) => {
+          if (d.id === mid) ts = Number((typeof d.data === "function" ? d.data() : d).timestamp) || 0;
+        });
+      }
+      if (!ts && typeof localMessages !== "undefined" && localMessages.has(mid)) {
+        ts = Number(localMessages.get(mid).timestamp) || 0;
+      }
+      if (!ts && typeof olderMessages !== "undefined" && olderMessages.has(mid)) {
+        ts = Number(olderMessages.get(mid).timestamp) || 0;
+      }
+
+      if (ts > 0) {
+        const d = new Date(ts);
+        const dk = d.toDateString();
+        const yestStr = new Date(now - 864e5).toDateString();
+        const correctLabel =
+          dk === todayStr ? "Today" :
+          dk === yestStr ? "Yesterday" :
+          d.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+
+        if (sep.textContent !== correctLabel) {
+          sep.textContent = correctLabel;
+        }
+        sep.classList.toggle("today", dk === todayStr);
+      }
+    });
+  }
+
+  new MutationObserver(syncDateLabels).observe(box, { childList: true });
+  setInterval(syncDateLabels, 10000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) syncDateLabels();
+  });
 })();
 </script>
 </body>
