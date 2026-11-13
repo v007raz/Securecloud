@@ -1186,62 +1186,14 @@ html.lite #msgToast{transition-duration:.2s!important}
 #msgToast.show{opacity:1}
 </style>
 <style id="app-download-storage">
-#appDlBtn {
-  position: absolute;
-  top: calc(14px + env(safe-area-inset-top, 0px));
-  right: 14px;
-  z-index: 25;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
-  transition: transform 0.15s ease, background 0.2s ease;
-}
-#appDlBtn:active {
-  transform: scale(0.94);
-  background: rgba(255, 255, 255, 0.34);
-}
-#appDlBtn svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-#appDlBar {
-  position: fixed;
-  left: 50%;
-  top: calc(56px + env(safe-area-inset-top, 0px));
-  transform: translateX(-50%);
-  z-index: 9999;
-  background: rgba(15, 23, 42, 0.92);
-  color: #fff;
-  padding: 7px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-}
-#appDlBar.hidden {
-  display: none !important;
-}
+#appDlBtn{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px;z-index:25;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.2);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow:hidden;isolation:isolate;transition:transform .15s ease,background .2s ease}
+#appDlBtn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);background:linear-gradient(90deg,#ec4899,#f472b6);z-index:-1;transition:width .25s ease;opacity:.95}
+#appDlBtn:active{transform:scale(.94);background:rgba(255,255,255,.34)}
+#appDlBtn.busy{cursor:progress}
+#appDlBtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#appDlLabel{min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+#appDlBar{position:fixed;left:50%;top:calc(56px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:9999;max-width:92vw;overflow:hidden;text-overflow:ellipsis;background:rgba(15,23,42,.92);color:#fff;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;box-shadow:0 6px 20px rgba(0,0,0,.35);pointer-events:none}
+#appDlBar.hidden{display:none!important}
 </style>
 <style id="date-sep-fix">
 /* Date indicator: turant dikhega aur scroll karne par gayab ho jayega */
@@ -1265,7 +1217,7 @@ html.lite #msgToast{transition-duration:.2s!important}
   <svg viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>
   <span id="appDlLabel">Download App</span>
 </button>
-<input type="file" id="appUploadInput" class="hidden">
+<input type="file" id="appUploadInput" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none" tabindex="-1" aria-hidden="true">
 <div id="appDlBar" class="hidden"></div>
 <div class="login-bg" aria-hidden="true"></div>
 <div class="login-petals" aria-hidden="true"></div>
@@ -1686,6 +1638,7 @@ function mxSig(m){return m.media?(mxState.get(m.id)||{}).state+"/"+(mxUrls.has(m
 function mxErr(e){const s=((e&&e.code)||"")+" "+((e&&e.message)||"");if(/permission/i.test(s))return"Blocked by database rules";if(/network|offline|unavailable|disconnect/i.test(s))return"No connection";const m=e&&e.message;return m&&m.length<36?m:"Failed"}
 function mxToB64(b){return new Promise((res,rej)=>{const r=new FileReader;r.onload=()=>{const s=r.result;res(s.slice(s.indexOf(",")+1))};r.onerror=()=>rej(r.error||new Error("Read failed"));r.readAsDataURL(b)})}
 function mxFromB64(s){const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+window.__appFb={rtdb,ref,set,get,presenceReady,mxToB64,mxFromB64};
 /* ---- file preparation ---- */
 async function mxPrepImage(file){const u=URL.createObjectURL(file);try{
 const img=await new Promise((res,rej)=>{const i=new Image;i.onload=()=>res(i);i.onerror=()=>rej(new Error("Image can't be read on this device"));i.src=u});
@@ -3483,7 +3436,7 @@ function init(){
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
-/* ===== STARTING PAGE: DOWNLOAD & LONG-PRESS UPLOAD STORAGE ===== */
+/* ===== STARTING PAGE: CLICK = DOWNLOAD, LONG PRESS = UPLOAD (pink % progress) ===== */
 (function initAppStorage() {
   const btn = document.getElementById("appDlBtn");
   const lbl = document.getElementById("appDlLabel");
@@ -3493,21 +3446,39 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 
   const STORAGE_ROOT = "app_release_storage";
   const CHUNK_SIZE = 98304;
-  const PARALLEL = 10;
-  let busy = false;
-  let pressTimer = null;
-  let didLongPress = false;
+  const PARALLEL = 6;
+  const IDLE = "Download App";
+  let busy = false, pressTimer = null, didLongPress = false;
 
+  const setProgress = (pct) => {
+    btn.style.setProperty("--p", pct + "%");
+    lbl.textContent = pct + "%";
+  };
+  const resetBtn = () => {
+    busy = false;
+    btn.classList.remove("busy");
+    btn.style.setProperty("--p", "0%");
+    lbl.textContent = IDLE;
+  };
   const showStatus = (msg, autoHideMs = 0) => {
     bar.textContent = msg;
     bar.classList.remove("hidden");
     clearTimeout(bar._t);
-    if (autoHideMs > 0) {
-      bar._t = setTimeout(() => bar.classList.add("hidden"), autoHideMs);
+    if (autoHideMs > 0) bar._t = setTimeout(() => bar.classList.add("hidden"), autoHideMs);
+  };
+  const fb = () => {
+    if (!window.__appFb) throw new Error("Firebase abhi ready nahi hai");
+    return window.__appFb;
+  };
+  const withRetry = async (fn, tries = 3) => {
+    let last;
+    for (let i = 0; i < tries; i++) {
+      try { return await fn(); } catch (e) { last = e; await new Promise(r => setTimeout(r, 400 * (i + 1))); }
     }
+    throw last;
   };
 
-  // Long Press (1.2 sec) -> File picker khulega upload ke liye
+  /* ---- Long press (1s) = upload ---- */
   const startPress = (e) => {
     if (e.pointerType === "mouse" && e.button !== 0) return;
     didLongPress = false;
@@ -3515,38 +3486,35 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
     pressTimer = setTimeout(() => {
       didLongPress = true;
       if (navigator.vibrate) navigator.vibrate(35);
-      if (busy) {
-        showStatus("Process chal raha hai, kripya intezar karein...", 2500);
-        return;
-      }
+      if (busy) { showStatus("Process chal raha hai, thoda ruko...", 2500); return; }
       inp.value = "";
       inp.click();
-    }, 1200);
+    }, 1000);
   };
-
   const cancelPress = () => clearTimeout(pressTimer);
-
   btn.addEventListener("pointerdown", startPress);
   btn.addEventListener("pointerup", cancelPress);
   btn.addEventListener("pointerleave", cancelPress);
   btn.addEventListener("pointercancel", cancelPress);
   btn.addEventListener("contextmenu", (e) => e.preventDefault());
 
-  // File Upload Logic
+  /* ---- Upload ---- */
   inp.addEventListener("change", async (e) => {
     const file = e.target.files && e.target.files[0];
-    if (!file || busy) return;
+    if (!file) return;
+    if (busy) { showStatus("Process chal raha hai, thoda ruko...", 2500); return; }
     busy = true;
-    lbl.textContent = "Uploading...";
-    showStatus(`Uploading ${file.name} (0%)...`);
+    btn.classList.add("busy");
+    setProgress(0);
+    showStatus("Uploading " + file.name + "...");
 
     try {
+      const { rtdb, ref, set, presenceReady, mxToB64 } = fb();
       await presenceReady;
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      let nextIdx = 0;
-      let uploadedChunks = 0;
+      const totalChunks = Math.max(1, Math.ceil(file.size / CHUNK_SIZE));
+      let nextIdx = 0, done = 0;
 
-      await set(ref(rtdb, STORAGE_ROOT), null);
+      await withRetry(() => set(ref(rtdb, STORAGE_ROOT), null));
 
       const worker = async () => {
         while (true) {
@@ -3554,78 +3522,72 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
           if (idx >= totalChunks) return;
           const slice = file.slice(idx * CHUNK_SIZE, Math.min(file.size, (idx + 1) * CHUNK_SIZE));
           const b64 = await mxToB64(slice);
-          await set(ref(rtdb, `${STORAGE_ROOT}/chunks/${idx}`), b64);
-          uploadedChunks++;
-          const pct = Math.min(99, Math.floor((uploadedChunks / totalChunks) * 100));
-          showStatus(`Uploading ${file.name} (${pct}%)...`);
+          await withRetry(() => set(ref(rtdb, STORAGE_ROOT + "/chunks/" + idx), b64));
+          done++;
+          setProgress(Math.min(99, Math.floor((done / totalChunks) * 100)));
         }
       };
-
       await Promise.all(Array.from({ length: Math.min(PARALLEL, totalChunks) }, worker));
 
-      await set(ref(rtdb, `${STORAGE_ROOT}/meta`), {
+      await withRetry(() => set(ref(rtdb, STORAGE_ROOT + "/meta"), {
         name: file.name,
         size: file.size,
-        type: file.type || "application/vnd.android.package-archive",
+        type: file.type || "application/octet-stream",
         chunks: totalChunks,
         uploadedAt: Date.now()
-      });
+      }));
 
-      showStatus(`Uploaded: ${file.name} ✓`, 3500);
+      setProgress(100);
+      showStatus("Uploaded: " + file.name + " ✓", 3500);
+      await new Promise(r => setTimeout(r, 700));
     } catch (err) {
       console.error("App upload failed:", err);
       showStatus("Upload failed! Internet ya DB rules check karein.", 4000);
     } finally {
-      busy = false;
-      lbl.textContent = "Download App";
+      resetBtn();
     }
   });
 
-  // Simple Click -> File Download Logic
+  /* ---- Single click = download ---- */
   btn.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (didLongPress) {
-      didLongPress = false;
-      return;
-    }
-    if (busy) {
-      showStatus("Download/Upload pehle se chal raha hai...", 2000);
-      return;
-    }
+    if (didLongPress) { didLongPress = false; return; }
+    if (busy) { showStatus("Upload/Download pehle se chal raha hai...", 2000); return; }
 
     busy = true;
-    lbl.textContent = "Preparing...";
+    btn.classList.add("busy");
+    setProgress(0);
     showStatus("Checking storage...");
 
     try {
+      const { rtdb, ref, get, presenceReady, mxFromB64 } = fb();
       await presenceReady;
-      const metaSnap = await get(ref(rtdb, `${STORAGE_ROOT}/meta`));
+      const metaSnap = await withRetry(() => get(ref(rtdb, STORAGE_ROOT + "/meta")));
       if (!metaSnap.exists()) {
         showStatus("Abhi koi file upload nahi hai (Long press se upload karein)", 3500);
         return;
       }
-
       const meta = metaSnap.val();
       const totalChunks = meta.chunks || 0;
+      if (!totalChunks) throw new Error("Empty file");
       const parts = new Array(totalChunks);
-      let nextIdx = 0;
-      let doneChunks = 0;
+      let nextIdx = 0, done = 0;
 
       const worker = async () => {
         while (true) {
           const idx = nextIdx++;
           if (idx >= totalChunks) return;
-          const chunkSnap = await get(ref(rtdb, `${STORAGE_ROOT}/chunks/${idx}`));
-          const b64 = chunkSnap.val();
-          if (typeof b64 !== "string") throw new Error("Missing file chunk");
+          const b64 = await withRetry(async () => {
+            const v = (await get(ref(rtdb, STORAGE_ROOT + "/chunks/" + idx))).val();
+            if (typeof v !== "string") throw new Error("Missing file chunk " + idx);
+            return v;
+          });
           parts[idx] = mxFromB64(b64);
-          doneChunks++;
-          const pct = Math.min(99, Math.floor((doneChunks / totalChunks) * 100));
-          lbl.textContent = `${pct}%`;
-          showStatus(`Downloading ${meta.name} (${pct}%)...`);
+          done++;
+          setProgress(Math.min(99, Math.floor((done / totalChunks) * 100)));
+          showStatus("Downloading " + meta.name + " (" + Math.min(99, Math.floor((done / totalChunks) * 100)) + "%)...");
         }
       };
-
       await Promise.all(Array.from({ length: Math.min(PARALLEL, totalChunks) }, worker));
 
       const blob = new Blob(parts, { type: meta.type || "application/octet-stream" });
@@ -3633,18 +3595,24 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
       const a = document.createElement("a");
       a.href = url;
       a.download = meta.name || "app.apk";
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      /* iOS Safari fallback: agar download attribute ignore ho to naye tab me khol do */
+      if (/iP(hone|ad|od)/.test(navigator.userAgent) && !("download" in HTMLAnchorElement.prototype)) {
+        window.open(url, "_blank");
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
 
-      showStatus(`Downloaded: ${meta.name} ✓`, 3000);
+      setProgress(100);
+      showStatus("Downloaded: " + meta.name + " ✓", 3000);
+      await new Promise(r => setTimeout(r, 700));
     } catch (err) {
       console.error("App download failed:", err);
       showStatus("Download failed! Dobara try karein.", 3500);
     } finally {
-      busy = false;
-      lbl.textContent = "Download App";
+      resetBtn();
     }
   });
 })();
