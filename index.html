@@ -1249,6 +1249,33 @@ html.lite #msgToast{transition-duration:.2s!important}
 #starOv .si{padding:10px 12px;margin:6px 0;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;cursor:pointer}
 #starOv .si small{display:block;color:#64748b;font-size:11px;margin-bottom:2px}
 </style>
+<style id="compact-options-final">
+#menu{width:min(12.5rem,66vw)!important;padding:4px!important;border-radius:13px!important;max-height:min(62vh,440px)!important;top:calc(100% + 5px)!important}
+#menu .mn-head{display:none!important}
+#menu .mn-sec{display:block!important;font-size:9.5px!important;letter-spacing:.12em!important;padding:7px 8px 2px!important}
+#menu .mn-sec:first-of-type{padding-top:3px!important}
+#menu .mn-t small{display:none!important}
+#menu button{padding:4px 7px!important;gap:8px!important;border-radius:9px!important;min-height:0!important}
+#menu button .opt-ic{width:24px!important;height:24px!important;border-radius:8px!important}
+#menu button .opt-ic svg{width:13px!important;height:13px!important}
+#menu .mn-t b{font-size:12.5px!important;line-height:1.2!important}
+#menu .mn-sw{width:30px;height:18px}
+#menu .mn-sw::after{width:13px;height:13px;top:2.5px;left:2.5px}
+#menu #freshBtn[aria-checked=true] .mn-sw::after{transform:translateX(12px)}
+#actions>div{width:12rem!important;max-width:68vw!important;padding:4px!important;border-radius:13px!important;max-height:66vh;overflow-y:auto}
+#actions>div button{padding:4px 9px!important;gap:8px!important;font-size:12.5px!important;line-height:1.2!important;min-height:0!important}
+#actions .opt-ic{width:22px!important;height:22px!important}
+#actions .opt-ic svg{width:13px!important;height:13px!important}
+/* Today/date chip must never overlap the menus */
+#chatHeader{position:relative!important;z-index:50!important}
+#menu,#callMenu{z-index:60!important}
+#messages .date-sep{z-index:2!important}
+/* reply preview: show the real picture, no label */
+#messages .reply-preview.has-thumb.rp-only{display:block;width:fit-content;min-width:0;max-width:100%;padding:3px!important}
+#messages .reply-preview.rp-only .rp-img{display:block;width:auto;height:auto;max-width:150px;max-height:150px;border-radius:8px;margin:0}
+#messages .reply-preview.rp-only .rp-img img{width:auto;height:auto;max-width:150px;max-height:150px;object-fit:contain;border-radius:8px}
+#replyThumbWrap{width:44px;height:44px}
+</style>
 </head>
 <body>
 <div id="app">
@@ -1323,9 +1350,9 @@ html.lite #msgToast{transition-duration:.2s!important}
 <div class="mn-head"><div class="mn-av" id="mnAv">C</div><div class="mn-who"><b id="mnName">Chat</b><small id="mnSub">Secure Cloud</small></div></div>
 <div class="mn-sec">Screen</div>
 <button id="fsBtn" type="button" role="menuitem"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></i><span class="mn-t"><b id="fsLabel">Full screen</b><small>Open the app in full-screen mode</small></span></button>
-<div class="mn-sec mn-sec-d">Danger zone</div>
-<button id="searchBtn" type="button" role="menuitem"><i class="opt-ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></i><span class="mn-t"><b>Search</b><small>Find messages in this chat</small></span></button>
+<div class="mn-sec">Chat</div>
 <button id="starBtn" type="button" role="menuitem"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg></i><span class="mn-t"><b>Starred messages</b><small>All your saved messages</small></span></button>
+<div class="mn-sec mn-sec-d">Danger zone</div>
 <button id="clearChat" type="button" role="menuitem" class="opt-danger"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></i><span class="mn-t"><b>Clear chat</b><small>Permanently delete all messages</small></span></button>
 <button id="logoutBtn" type="button" role="menuitem" class="opt-danger"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg></i><span class="mn-t"><b>Logout</b><small>Signs out on both devices</small></span></button>
 <div class="mn-sec">Style</div>
@@ -1510,7 +1537,6 @@ html.lite #msgToast{transition-duration:.2s!important}
 <button id="edit" type="button"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3z"/></svg></i><span>Edit message</span></button>
 <button id="saveMsg" type="button"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8L3.5 9.7l5.9-.9L12 3.5z"/></svg></i><span>Save message</span></button>
 <button id="pinMsg" type="button"><i class="opt-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l-1 6 3 3v2H7v-2l3-3-1-6z"/><path d="M12 15v6"/></svg></i><span>Pin message</span></button>
-<button id="infoMsg" type="button"><i class="opt-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></i><span>Message info</span></button>
 <button id="deleteMe" type="button"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></i><span>Delete for me</span></button>
 <button id="deleteAll" type="button" class="opt-danger hidden"><i class="opt-ic"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></i><span>Delete for everyone</span></button>
 <button id="closeActions" type="button" class="opt-cancel">Cancel</button>
@@ -1673,8 +1699,8 @@ function selMsgs(){return[...selectedIds].map(findMsg).filter(m=>m&&!m.isDeleted
 function msgThumbSrc(m){if(!m)return null;const md=m.media;if(md&&(md.kind==="image"||md.kind==="video")&&md.thumb)return{src:md.thumb,kind:md.kind};if(md&&md.kind==="image"&&mxUrls.get(m.id))return{src:mxUrls.get(m.id),kind:"image"};if(m.image)return{src:m.image,kind:"image"};if(m.mediaUrl&&(m.mediaType||"").startsWith("image/"))return{src:m.mediaUrl,kind:"image"};return null}
 function smallThumb(src){return new Promise(res=>{const i=new Image;i.onload=()=>{try{const k=Math.min(1,120/Math.max(i.naturalWidth,i.naturalHeight,1)),w=Math.max(1,Math.round(i.naturalWidth*k)),h=Math.max(1,Math.round(i.naturalHeight*k)),c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(i,0,0,w,h);res(c.toDataURL("image/jpeg",.62))}catch{res(null)}};i.onerror=()=>res(null);i.src=src})}
 function mkReply(){const o={id:replyTo.id,text:replyTo.text||mxLabel(replyTo)||"media"};if(replyThumb&&replyThumb.id===replyTo.id){o.thumb=replyThumb.thumb;o.kind=replyThumb.kind}return o}
-function setReplyBoxPreview(message){const w=$("replyThumbWrap"),im=$("replyThumbImg");replyThumb=null;w.classList.add("hidden");w.classList.remove("rp-vid");const t=msgThumbSrc(message);if(!t)return;im.src=t.src;w.classList.toggle("rp-vid",t.kind==="video");w.classList.remove("hidden");smallThumb(t.src).then(x=>{x&&replyTo===message&&(replyThumb={id:message.id,thumb:x,kind:t.kind})})}
-function fillReplyPreview(rep,r){let th=r.thumb,kind=r.kind;if(!th){const t=msgThumbSrc(findMsg(r.id));t&&(th=t.src,kind=t.kind)}const txt=r.text&&r.text!=="media"?r.text:"";if(!th){rep.textContent=r.text||"media";return}rep.classList.add("has-thumb");const t=document.createElement("span");t.className="rp-txt";t.textContent=txt||(kind==="video"?"\u{1F3AC} Video":"\u{1F4F7} Photo");const w=document.createElement("span");w.className="rp-img"+(kind==="video"?" rp-vid":"");const im=document.createElement("img");im.alt="";im.draggable=!1;im.src=th;w.appendChild(im);rep.append(t,w)}
+function setReplyBoxPreview(message){const w=$("replyThumbWrap"),im=$("replyThumbImg");replyThumb=null;w.classList.add("hidden");w.classList.remove("rp-vid");const t=msgThumbSrc(message);if(!t)return;im.src=t.src;w.classList.toggle("rp-vid",t.kind==="video");w.classList.remove("hidden");message.text||($("replyText").textContent="");smallThumb(t.src).then(x=>{x&&replyTo===message&&(replyThumb={id:message.id,thumb:x,kind:t.kind})})}
+function fillReplyPreview(rep,r){let th=r.thumb,kind=r.kind;if(!th){const t=msgThumbSrc(findMsg(r.id));t&&(th=t.src,kind=t.kind)}const LBL=/^(\u{1F4F7} Photo|\u{1F3AC} Video|media)$/u,txt=r.text&&!LBL.test(r.text)?r.text:"";if(!th){rep.textContent=r.text&&r.text!=="media"?r.text:"\u{1F4CE} Attachment";return}rep.classList.add("has-thumb");txt||rep.classList.add("rp-only");if(txt){const t=document.createElement("span");t.className="rp-txt";t.textContent=txt;rep.append(t)}const w=document.createElement("span");w.className="rp-img"+(kind==="video"?" rp-vid":"");const im=document.createElement("img");im.alt="";im.draggable=!1;im.src=th;w.appendChild(im);rep.append(w)}
 async function setPinned(m,next){if(!room||!myId||m.isDeleted)return;localPinned.set(m.id,next);if(next&&!isSaved(m)){localSaved.set(m.id,!0);savedIds.add(m.id);seenToPurge.delete(m.id);try{await writeSave(m,!0)}catch(e){console.warn("Pin-save failed",e)}}try{await rtMulti({[msgPath(m.id)+"/pinned"]:next?!0:null})}catch(e){localPinned.delete(m.id);console.warn("Pin failed",e)}rerenderMessages()}
 function bulkSave(){const ms=selMsgs();if(!ms.length)return;const next=!ms.every(isSaved);ms.forEach(m=>{isSaved(m)!==next&&toggleSave(m,document.querySelector('#messages > [data-mid="'+CSS.escape(m.id)+'"]'))});showMiniToast(next?"\u2B50 "+ms.length+" saved":"Removed from saved");navigator.vibrate?.(10);exitSelectMode()}
 async function bulkPin(){const ms=selMsgs();if(!ms.length)return;const next=!ms.every(isPinned);showMiniToast(next?"\u{1F4CC} "+ms.length+" pinned":"Unpinned");navigator.vibrate?.(10);exitSelectMode();for(const m of ms)isPinned(m)!==next&&await setPinned(m,next)}
@@ -1723,7 +1749,9 @@ const img=await new Promise((res,rej)=>{const i=new Image;i.onload=()=>res(i);i.
 const w0=img.naturalWidth,h0=img.naturalHeight;if(!w0||!h0)throw new Error("Image can't be read");
 const draw=mx_=>{const k=Math.min(1,mx_/Math.max(w0,h0)),w=Math.max(1,Math.round(w0*k)),h=Math.max(1,Math.round(h0*k)),c=document.createElement("canvas");c.width=w;c.height=h;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,w,h);x.imageSmoothingEnabled=!0;x.imageSmoothingQuality="high";x.drawImage(img,0,0,w,h);return{c,w,h}};
 const t=draw(360),thumb=t.c.toDataURL("image/jpeg",.72);let blob=file,w=w0,h=h0,name=file.name||"photo.jpg",mime=file.type||"image/jpeg";
-if(mime!=="image/gif"){const g=draw(2560),b=await new Promise(r=>g.c.toBlob(r,"image/jpeg",.9));if(b&&(b.size<file.size||file.size>MX_MAX)){blob=b;w=g.w;h=g.h;mime="image/jpeg";name=name.replace(/\.[^.]+$/,"")+".jpg"}}
+if(mime!=="image/gif"&&mime!=="image/png"){try{const k=Math.min(1,8192/Math.max(w0,h0)),W=Math.max(1,Math.round(w0*k)),H=Math.max(1,Math.round(h0*k)),c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,W,H);x.imageSmoothingEnabled=!0;x.imageSmoothingQuality="high";try{x.filter="contrast(1.05) saturate(1.08) brightness(1.01)"}catch{}x.drawImage(img,0,0,W,H);try{x.filter="none"}catch{}
+if(W*H<=16e6){try{const id=x.getImageData(0,0,W,H),d=id.data,sc=new Uint8ClampedArray(d),am=.25,cc=1+4*am,r=W*4;for(let y=1;y<H-1;y++){for(let i=y*r+4,en=y*r+r-4;i<en;i++){if((i&3)===3)continue;d[i]=cc*sc[i]-am*(sc[i-4]+sc[i+4]+sc[i-r]+sc[i+r])}}x.putImageData(id,0,0)}catch{}}
+const b=await new Promise(rs=>c.toBlob(rs,"image/jpeg",.97));if(b){blob=b;w=W;h=H;mime="image/jpeg";name=name.replace(/\.[^.]+$/,"")+".jpg"}}catch{}}
 return{blob,w,h,thumb,name,mime}}finally{URL.revokeObjectURL(u)}}
 function mxProbeVideo(file){return new Promise(res=>{const u=URL.createObjectURL(file),v=document.createElement("video");let done=!1,t;const fin=r=>{if(done)return;done=!0;clearTimeout(t);try{v.removeAttribute("src");v.load()}catch{}URL.revokeObjectURL(u);res(r)};t=setTimeout(()=>fin({}),6000);v.muted=!0;v.playsInline=!0;v.preload="auto";
 v.onloadedmetadata=()=>{try{v.currentTime=Math.min(.5,(v.duration||1)/2)}catch{}};
