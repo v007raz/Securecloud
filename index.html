@@ -1325,11 +1325,11 @@ html.lite #msgToast{transition-duration:.2s!important}
 </div>
 <div id="composer" class="p-2 bg-gray-100 flex items-center gap-2">
 <input type="file" id="dpInput" accept="image/*" class="hidden">
-<input type="file" id="mxIn_image" accept="image/*" class="hidden">
-<input type="file" id="mxIn_video" accept="video/*" class="hidden">
-<input type="file" id="mxIn_audio" accept="audio/*" class="hidden">
-<input type="file" id="mxIn_pdf" accept="application/pdf,.pdf" class="hidden">
-<input type="file" id="mxIn_file" class="hidden">
+<input type="file" id="mxIn_image" accept="image/*" multiple class="hidden">
+<input type="file" id="mxIn_video" accept="video/*" multiple class="hidden">
+<input type="file" id="mxIn_audio" accept="audio/*" multiple class="hidden">
+<input type="file" id="mxIn_pdf" accept="application/pdf,.pdf" multiple class="hidden">
+<input type="file" id="mxIn_file" multiple class="hidden">
 
 <div id="msgWrap"><textarea id="message" rows="1" class="flex-1 rounded-2xl p-3 border resize-none outline-none" placeholder="Message"></textarea><button id="mxAttach" type="button" class="flex items-center justify-center" title="Share media" aria-label="Share photo, video, audio or PDF"><svg viewBox="0 0 24 24"><path d="M21 11.5l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.6-8.6a3.7 3.7 0 0 1 5.2 5.2l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6l7.9-7.9"/></svg></button><button id="emojiBtn" type="button" aria-label="Emoji" class="rounded-full text-gray-700 flex items-center justify-center text-lg" title="Emoji">😊</button></div>
 <button id="send" class="rounded-full flex items-center justify-center" title="Send" aria-label="Send message">
@@ -1676,8 +1676,16 @@ else if(kind==="audio"){const a=document.createElement("audio");a.src=mxPrevUrl;
 else{const d=document.createElement("div");d.className="mx-bigico";d.textContent=kind==="file"?"\u{1F4CE}":"\u{1F4C4}";body.append(d)}
 $("mxPrevName").textContent=file.name||MX_LABEL[kind];$("mxPrevMeta").textContent=MX_LABEL[kind]+" \u00B7 "+mxFmt(file.size)+(kind==="image"&&file.size>1.5*1048576?" \u00B7 high quality":"");
 $("mxCap").value="";$("mxPrev").classList.remove("hidden")}
+let mxPrevUrls=[];function mxStageMany(fs){fs=fs.filter(f=>f&&f.size&&mxKind(f));if(!fs.length)return alert("This file can't be shared.");if(fs.length===1)return mxStage(fs[0]);
+const list=fs.map(f=>({file:f,kind:mxKind(f)}));mxPend={list};mxPrevUrls=[];const body=$("mxPrevBody");body.replaceChildren();
+const g=document.createElement("div");g.style.cssText="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;padding:4px;max-height:42vh;overflow-y:auto";
+list.slice(0,9).forEach((it,i)=>{const c=document.createElement("div");c.style.cssText="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#e2e8f0;display:flex;align-items:center;justify-content:center;font-size:28px";
+if(it.kind==="image"||it.kind==="video"){const u=URL.createObjectURL(it.file);mxPrevUrls.push(u);const e=document.createElement(it.kind==="image"?"img":"video");e.src=u;if(it.kind==="video"){e.muted=!0;e.preload="metadata"}e.style.cssText="width:100%;height:100%;object-fit:cover";c.append(e)}else c.textContent="\u{1F4CE}";
+if(i===8&&list.length>9){const o=document.createElement("div");o.style.cssText="position:absolute;inset:0;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px";o.textContent="+"+(list.length-8);c.append(o)}
+g.append(c)});body.append(g);
+const tot=list.reduce((a,b)=>a+b.file.size,0);$("mxPrevName").textContent=list.length+" files selected";$("mxPrevMeta").textContent="Total "+mxFmt(tot)+" \u00B7 sent one by one";$("mxCap").value="";$("mxPrev").classList.remove("hidden")}
 let mxPend=null,mxPrevUrl=null;
-function mxClosePrev(){$("mxPrev").classList.add("hidden");const v=$("mxPrevBody").querySelector("video,audio");v&&v.pause();$("mxPrevBody").replaceChildren();mxPrevUrl&&URL.revokeObjectURL(mxPrevUrl);mxPrevUrl=null;mxPend=null}
+function mxClosePrev(){$("mxPrev").classList.add("hidden");const v=$("mxPrevBody").querySelector("video,audio");v&&v.pause();$("mxPrevBody").replaceChildren();mxPrevUrl&&URL.revokeObjectURL(mxPrevUrl);mxPrevUrl=null;mxPrevUrls.forEach(u=>URL.revokeObjectURL(u));mxPrevUrls=[];mxPend=null}
 async function mxSendFile(file,kind,caption,opts){opts=opts||{};if(!uid||!room)return;
 const now=nextTs(),id="msg_"+now+"_"+Math.random().toString(36).slice(2,8),reply=replyTo?{id:replyTo.id,text:replyTo.text||mxLabel(replyTo)||"media"}:null;reply&&hideReplyBubble();
 const md={kind,name:file.name||MX_LABEL[kind],size:file.size,mime:file.type||(kind==="pdf"?"application/pdf":"application/octet-stream")};
@@ -1745,10 +1753,10 @@ $("mxAttach").onclick=()=>{room&&uid&&$("mxSheet").classList.remove("hidden")};
 $("mxSheet").onclick=e=>{e.target.id==="mxSheet"&&$("mxSheet").classList.add("hidden")};
 $("mxSheetClose").onclick=()=>$("mxSheet").classList.add("hidden");
 document.querySelectorAll("[data-mxpick]").forEach(b=>b.onclick=()=>{$("mxSheet").classList.add("hidden");const i=$("mxIn_"+b.dataset.mxpick);i.value="";i.click()});
-["image","video","audio","pdf","file"].forEach(k=>$("mxIn_"+k).onchange=e=>{const f=e.target.files&&e.target.files[0];f&&mxStage(f)});
+["image","video","audio","pdf","file"].forEach(k=>$("mxIn_"+k).onchange=e=>{const fs=[...(e.target.files||[])];fs.length&&mxStageMany(fs)});
 $("mxPrev").onclick=e=>{e.target.id==="mxPrev"&&mxClosePrev()};
 $("mxPrevCancel").onclick=mxClosePrev;
-const mxDoSend=()=>{const p=mxPend;if(!p)return;const c=$("mxCap").value.trim();mxClosePrev();mxSendFile(p.file,p.kind,c)};
+const mxDoSend=()=>{const p=mxPend;if(!p)return;const c=$("mxCap").value.trim();mxClosePrev();if(p.list){(async()=>{for(let i=0;i<p.list.length;i++){try{await mxSendFile(p.list[i].file,p.list[i].kind,i===0?c:"")}catch(e){console.error(e)}}})();return}mxSendFile(p.file,p.kind,c)};
 $("mxSend").onclick=mxDoSend;$("mxCap").onkeydown=e=>{e.key==="Enter"&&!e.isComposing&&(e.preventDefault(),mxDoSend())};
 
 $("message").addEventListener("paste",e=>{const f=[...(e.clipboardData&&e.clipboardData.files||[])][0];if(f&&mxKind(f)){e.preventDefault();mxStage(f)}});
