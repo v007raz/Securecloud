@@ -2039,7 +2039,7 @@ setInterval(flushOutbox,5e3),setInterval(syncCheck,1e4),window.addEventListener(
 var hardKickAt=0,hbBusy=!1,hbFails=0,lastTick=Date.now(),reviveAt=0,noSnapTicks=0,lagBusy=!1,nudgeAt=0,nudgeN=0,unNudge=null,nudgeSince=0;
 function hardReconnect(why,resub){const n=Date.now();if(n-hardKickAt<5e3)return;hardKickAt=n;console.warn("Realtime hard reconnect:",why);try{rtOffline(rtdb)}catch{}setTimeout(()=>{try{rtOnline(rtdb)}catch{}setTimeout(()=>{try{resub!==!1&&room&&window.__subChat&&window.__subChat(!0)}catch{}try{obTries.clear(),flushOutbox()}catch{}try{armPresence()}catch{}},1500)},400)}
 /* true = server answered (ack or rejection means the link is alive); false = timeout (socket is dead) */
-function pingRt(ms){return new Promise(res=>{let done=!1;const fin=v=>{done||(done=!0,clearTimeout(t),res(v))},t=setTimeout(()=>fin(!1),ms);presenceReady.then(()=>update(PR(myId),{lastSeen:serverTimestamp()})).then(()=>fin(!0),()=>fin(!0))})}
+function pingRt(ms){return new Promise(res=>{let done=!1;const fin=v=>{done||(done=!0,clearTimeout(t),res(v))},t=setTimeout(()=>fin(!1),ms);presenceReady.then(()=>update(PR(myId),document.hidden?{lastSeen:serverTimestamp()}:{online:!0,lastSeen:serverTimestamp()})).then(()=>fin(!0),()=>fin(!0))})}
 setInterval(async()=>{const n=Date.now(),gap=n-lastTick;lastTick=n;if(!myId||!room||navigator.onLine===!1)return;
  if(!lastLiveSnap){if(++noSnapTicks>=3){noSnapTicks=0,hardReconnect("no first snapshot")}return}noSnapTicks=0;
  if(document.hidden||hbBusy)return;if(!rtConnected&&gap<2e4)return;
