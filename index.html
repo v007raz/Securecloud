@@ -1783,7 +1783,7 @@ html.lite .mx-btn>svg{animation:none!important}
 <input id="wallFile" type="file" accept="image/*" style="display:none">
 <button type="button" id="wallEdit" class="wall-b" style="margin-top:8px;width:100%;height:42px;display:block">✂️ Crop / Edit photo</button>
 <div style="margin-top:12px;display:flex;align-items:center;gap:10px;font-size:12px;color:#4b5563">
-<span>Halka</span><input id="wallOp" type="range" min="8" max="60" step="1" value="22" style="flex:1;accent-color:#be185d"><span>Gehra</span>
+<span>Halka</span><input id="wallOp" type="range" min="5" max="100" step="1" value="22" style="flex:1;accent-color:#be185d"><span>Gehra</span>
 </div>
 </div>
 <button id="customThemeBtn" class="w-full mt-4 p-3 rounded-lg bg-gray-100 text-gray-800 font-semibold">Custom color</button>
@@ -4286,7 +4286,14 @@ function injectCss(){
  +"#wallEd .we-hint{font-size:11px;opacity:.65;text-align:center;padding:4px 0 6px}"
  +"#wallEd .we-tools{padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));max-height:42vh;overflow-y:auto;background:#141417;border-radius:18px 18px 0 0}"
  +"#wallEd .we-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}#wallEd .we-row button{flex:0 0 auto}"
- +"#wallEd .we-sl{display:flex;align-items:center;gap:10px;font-size:12px;margin:7px 0}#wallEd .we-sl span{width:78px}#wallEd .we-sl input{flex:1;accent-color:#ec4899}#wallEd .we-sl em{width:36px;text-align:right;font-style:normal;opacity:.7}";
+ +"#wallEd .we-sl{display:flex;align-items:center;gap:10px;font-size:12px;margin:7px 0}#wallEd .we-sl span{width:78px}#wallEd .we-sl input{flex:1;accent-color:#ec4899}#wallEd .we-sl em{width:36px;text-align:right;font-style:normal;opacity:.7}"
+ +"#wallEd .we-chat{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:10px 10px 12px;overflow:hidden}"
+ +"#wallEd .we-chat[hidden]{display:none}"
+ +"#wallEd .we-ds{align-self:center;font-size:10.5px;font-weight:600;color:#475569;background:rgba(255,255,255,.85);padding:3px 10px;border-radius:99px;margin-bottom:2px}"
+ +"#wallEd .we-b{max-width:78%;padding:7px 10px 5px;border-radius:16px;font-size:13px;line-height:1.35;box-shadow:0 1px 2px rgba(15,23,42,.18)}"
+ +"#wallEd .we-b small{display:block;text-align:right;font-size:9.5px;opacity:.75;margin-top:1px}"
+ +"#wallEd .we-b.r{align-self:flex-start;border-bottom-left-radius:5px;background:var(--bubble-received-bg,#fff);color:var(--bubble-received-color,#1f2937)}"
+ +"#wallEd .we-b.s{align-self:flex-end;border-bottom-right-radius:5px;background:var(--bubble-sent-bg,#be185d);color:var(--bubble-sent-color,#fff)}";
  document.head.appendChild(c);
 }
 function openEditor(srcUrl,done){
@@ -4299,22 +4306,23 @@ function openEditor(srcUrl,done){
   var W=im.naturalWidth,H=im.naturalHeight,k0=Math.min(1,2000/Math.max(W,H));
   var base=document.createElement("canvas");base.width=Math.max(1,Math.round(W*k0));base.height=Math.max(1,Math.round(H*k0));
   base.getContext("2d").drawImage(im,0,0,base.width,base.height);
-  var rot=0,flip=false,src=base,zoom=1,ox=0,oy=0,br=1,co=1,sa=1,tint=true,fw=200,fh=300,dpr=1;
+  var rot=0,flip=false,src=base,zoom=1,ox=0,oy=0,br=1,co=1,sa=1,tint=true,fw=200,fh=300,dpr=1,op=st.op,pv=true;
   var mm=document.getElementById("messages"),rc=mm&&mm.getBoundingClientRect();
   var ar=rc&&rc.width>50&&rc.height>50?rc.width/rc.height:innerWidth/innerHeight;ar=Math.min(Math.max(ar,.3),2);
   var ov=document.createElement("div");ov.id="wallEd";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","Crop and edit wallpaper");
   ov.innerHTML='<div class="we-top"><button type="button" data-a="cancel" aria-label="Cancel">\u2715</button><b>Crop &amp; edit</b><button type="button" class="we-ok" data-a="done">Done</button></div>'
-  +'<div class="we-stage"><div class="we-frame"><canvas></canvas><div class="we-tint"></div><div class="we-grid"></div></div></div>'
-  +'<div class="we-tools"><div class="we-hint">Drag karke photo khisko \u2022 do ungli se zoom karo</div>'
-  +'<div class="we-row"><button type="button" data-a="rl">\u27F2 Left</button><button type="button" data-a="rr">\u27F3 Right</button><button type="button" data-a="fl">\u21CB Flip</button><button type="button" data-a="tn" class="on">Tint preview</button><button type="button" data-a="rs">Reset</button></div>'
+  +'<div class="we-stage"><div class="we-frame"><canvas></canvas><div class="we-tint"></div><div class="we-chat"><div class="we-ds">Today</div><div class="we-b r">Hii \uD83D\uDC4B<small>10:21</small></div><div class="we-b s">Wallpaper kaisa lag raha hai? \uD83D\uDE0D<small>10:22 \u2713\u2713</small></div><div class="we-b r">Bahut sundar!<small>10:22</small></div></div><div class="we-grid"></div></div></div>'
+  +'<div class="we-tools"><div class="we-hint">Drag karke photo khisko \u2022 do ungli se zoom \u2022 neeche Opacity se transparency dekho</div>'
+  +'<div class="we-row"><button type="button" data-a="rl">\u27F2 Left</button><button type="button" data-a="rr">\u27F3 Right</button><button type="button" data-a="fl">\u21CB Flip</button><button type="button" data-a="pv" class="on">Chat preview</button><button type="button" data-a="tn" class="on">Transparency preview</button><button type="button" data-a="rs">Reset</button></div>'
   +'<div class="we-row" data-p="1"><button type="button" data-f="1,1,1">Original</button><button type="button" data-f="1.05,1.15,1.4">Vivid</button><button type="button" data-f="1.08,.9,.9">Soft</button><button type="button" data-f="1,1.05,0">B&amp;W</button><button type="button" data-f="1.25,1,1">Bright</button><button type="button" data-f=".75,1,1">Dim</button></div>'
-  +'<label class="we-sl"><span>Zoom</span><input type="range" data-k="z" min="100" max="500" value="100"><em></em></label>'
+  +'<label class="we-sl"><span>Opacity</span><input type="range" data-k="o" min="5" max="100" value="22"><em></em></label><label class="we-sl"><span>Zoom</span><input type="range" data-k="z" min="100" max="500" value="100"><em></em></label>'
   +'<label class="we-sl"><span>Brightness</span><input type="range" data-k="b" min="50" max="150" value="100"><em></em></label>'
   +'<label class="we-sl"><span>Contrast</span><input type="range" data-k="c" min="50" max="150" value="100"><em></em></label>'
   +'<label class="we-sl"><span>Colour</span><input type="range" data-k="s" min="0" max="200" value="100"><em></em></label></div>';
   document.body.appendChild(ov);
   var stage=ov.querySelector(".we-stage"),frame=ov.querySelector(".we-frame"),cv=ov.querySelector("canvas"),ctx=cv.getContext("2d"),tn=ov.querySelector(".we-tint");
-  var sl={z:ov.querySelector('[data-k="z"]'),b:ov.querySelector('[data-k="b"]'),c:ov.querySelector('[data-k="c"]'),s:ov.querySelector('[data-k="s"]')};
+  var chatEl=ov.querySelector(".we-chat"),gridEl=ov.querySelector(".we-grid");
+  var sl={o:ov.querySelector('[data-k="o"]'),z:ov.querySelector('[data-k="z"]'),b:ov.querySelector('[data-k="b"]'),c:ov.querySelector('[data-k="c"]'),s:ov.querySelector('[data-k="s"]')};
   function clampOff(){
    var sw=src.width,sh=src.height,sc=Math.max(fw/sw,fh/sh)*zoom,mx=Math.max(0,(sw*sc-fw)/2),my=Math.max(0,(sh*sc-fh)/2);
    ox=Math.min(mx,Math.max(-mx,ox));oy=Math.min(my,Math.max(-my,oy));
@@ -4326,6 +4334,7 @@ function openEditor(srcUrl,done){
    c2.drawImage(src,fw*kk/2+ox*kk-dw/2,fh*kk/2+oy*kk-dh/2,dw,dh);
   }
   function labels(){
+   sl.o.nextElementSibling.textContent=op+"%";sl.o.value=op;
    sl.z.nextElementSibling.textContent=Math.round(zoom*100)+"%";sl.b.nextElementSibling.textContent=Math.round(br*100)+"%";
    sl.c.nextElementSibling.textContent=Math.round(co*100)+"%";sl.s.nextElementSibling.textContent=Math.round(sa*100)+"%";
    sl.z.value=Math.round(zoom*100);sl.b.value=Math.round(br*100);sl.c.value=Math.round(co*100);sl.s.value=Math.round(sa*100);
@@ -4333,7 +4342,7 @@ function openEditor(srcUrl,done){
   function render(){
    clampOff();draw(ctx,dpr);
    cv.style.filter="brightness("+br+") contrast("+co+") saturate("+sa+")";
-   tn.style.background=tint?"color-mix(in srgb,var(--wall-tint,#fce7f3) "+(100-st.op)+"%,transparent)":"none";
+   tn.style.background=tint?"color-mix(in srgb,var(--wall-tint,#fce7f3) "+(100-op)+"%,transparent)":"none";chatEl.hidden=!pv;gridEl.style.display=pv?"none":"";
    labels();
   }
   function layout(){
@@ -4365,6 +4374,7 @@ function openEditor(srcUrl,done){
   sl.b.oninput=function(){br=sl.b.value/100;render()};
   sl.c.oninput=function(){co=sl.c.value/100;render()};
   sl.s.oninput=function(){sa=sl.s.value/100;render()};
+  sl.o.oninput=function(){op=+sl.o.value;render()};
   function adjust(c){
    if(br===1&&co===1&&sa===1)return;
    var x=c.getContext("2d"),d=x.getImageData(0,0,c.width,c.height),p=d.data,i,r,g,b,l;
@@ -4394,22 +4404,25 @@ function openEditor(srcUrl,done){
    var b=e.target.closest("button");if(!b)return;var a=b.getAttribute("data-a"),f=b.getAttribute("data-f");
    if(f){var v=f.split(",").map(Number);setFilter(v[0],v[1],v[2]);return}
    if(a==="cancel")close();
-   else if(a==="done"){b.disabled=true;b.textContent="Saving\u2026";setTimeout(function(){var u="";try{u=exportJpg()}catch(err){}close();if(u)done(u);else alert("Photo save nahi ho paayi")},30)}
+   else if(a==="done"){b.disabled=true;b.textContent="Saving\u2026";setTimeout(function(){var u="";try{u=exportJpg()}catch(err){}close();if(u)done(u,op);else alert("Photo save nahi ho paayi")},30)}
    else if(a==="rl"){rot=(rot+270)%360;rebuild()}
    else if(a==="rr"){rot=(rot+90)%360;rebuild()}
    else if(a==="fl"){flip=!flip;rebuild()}
    else if(a==="tn"){tint=!tint;b.classList.toggle("on",tint);render()}
+   else if(a==="pv"){pv=!pv;b.classList.toggle("on",pv);render()}
    else if(a==="rs"){rot=0;flip=false;br=1;co=1;sa=1;rebuild()}
   });
   requestAnimationFrame(layout);
  }
 }
 
-function commit(u){
- st.img=u;st.mode="custom";
+function curTheme(){try{var t=JSON.parse(localStorage.getItem("chat-theme")||"null");if(t&&t.name)return{name:t.name,color:t.name==="custom"?(t.color||""):""}}catch(e){}return null}
+function commit(u,op){
+ st.img=u;st.mode="custom";if(typeof op==="number")st.op=op;
  if(!save())alert("Photo lag gayi hai, par is session ke baad save nahi hogi (storage full).");
  apply();
- var pr=notify({mode:"custom",op:st.op,img:u});
+ var p={mode:"custom",op:st.op,img:u},th=curTheme();if(th)p.theme=th;
+ var pr=notify(p);
  if(pr&&pr.catch)pr.catch(function(){});
 }
 function init(){
